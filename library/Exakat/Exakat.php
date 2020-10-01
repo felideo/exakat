@@ -26,7 +26,7 @@ use Exakat\Configsource\Commandline;
 
 class Exakat {
     const VERSION = '2.1.9';
-    const BUILD = 1155;
+    const BUILD = 1156;
 
     private $config  = null;
 
@@ -218,7 +218,7 @@ class Exakat {
 |________|[__]`\_]\'-;__/[__|  \_]\'-;__/\__/  
                                                
 
-Exakat : @ 2014-2020 Damien Seguy - Exakat SAS <contact(at)exakat.io>. 
+Exakat (Community Edition) : @ 2014-2020 Damien Seguy - Exakat SAS <contact(at)exakat.io>. 
 Version : ", $version, ' - Build ', $build, ' - ', $date, "\n";
 
                 break;
