@@ -50,6 +50,7 @@ class WrongOptionalParameter extends Analyzer {
 
              ->nextSibling('ARGUMENT')
              ->outIsIE('PPP')
+             ->isNot('variadic', true)
              ->outIs('DEFAULT')
              ->atomIs('Void')
              ->hasNoIn('RIGHT')
