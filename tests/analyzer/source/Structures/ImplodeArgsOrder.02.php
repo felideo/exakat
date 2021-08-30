@@ -32,4 +32,10 @@ function fooStatic() {
         return $returnStatic;
     }
 
+function fooStatic2() {
+        static $returnStatic2 = 'oui';
+
+        $returnStatic = '.a{[' . implode($d, $returnStatic2) . ']}';
+        return $returnStatic;
+    }
 ?>

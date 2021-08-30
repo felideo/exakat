@@ -27,13 +27,13 @@ use Exakat\Analyzer\Analyzer;
 class MultipleAliasDefinitions extends Analyzer {
     public function analyze(): void {
         // alias with varied values
-        $aliases = $this->query(<<<'GREMLIN'
+        $aliasQuery = <<<'GREMLIN'
 g.V().hasLabel("Usenamespace").out("USE")
      .group("a").by("alias").by("fullnspath")
      .cap("a").next()
      .findAll{a,b -> b.unique().size() > 1}.keySet()
-GREMLIN
-                    )->toArray();
+GREMLIN;
+        $aliases = $this->query($aliasQuery)->toArray();
 
         if (empty($aliases)) {
             return ;

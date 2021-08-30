@@ -33,12 +33,31 @@ class UnknownParameterName extends Analyzer {
     }
 
     public function analyze(): void {
+        // function foo($a, $b)
+        // foo(a: 1, c:2)
         $this->atomIs(self::FUNCTIONS_ALL)
              ->collectArguments('args', 'fullcode')
              ->outIs('DEFINITION')
              ->outIs('ARGUMENT')
              ->has('rankName')
              ->raw('filter{ !(it.get().value("rankName") in args);}');
+        $this->prepareQuery();
+
+        // function foo($a, $b)
+        // foo(...[a: 1, c:2])
+        $this->atomIs(self::FUNCTIONS_ALL)
+             ->collectArguments('args', 'fullcode')
+             ->outIs('DEFINITION')
+             ->outWithRank('ARGUMENT', 0)
+             ->atomIs('Arrayliteral', self::WITH_CONSTANTS)
+             ->is('variadic', true)
+             ->not(
+                $this->side()
+                     ->outIs('ARGUMENT')
+                     ->atomIsNot(array('Keyvalue', 'Void'))
+             )
+             ->collectKeys('index', 'noDelimiter')
+             ->raw('filter{ index.collect{"\\$" + it;}.minus(args) != [];}');
         $this->prepareQuery();
     }
 }

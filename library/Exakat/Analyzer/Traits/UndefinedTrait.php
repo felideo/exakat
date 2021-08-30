@@ -24,19 +24,14 @@ namespace Exakat\Analyzer\Traits;
 use Exakat\Analyzer\Analyzer;
 
 class UndefinedTrait extends Analyzer {
-    public function dependsOn(): array {
-        return array('Modules/DefinedTraits',
-                    );
-    }
-
     public function analyze(): void {
         // class x { use t; } // no trait t {}
         $this->atomIs('Usetrait')
              ->outIs('USE')
              ->noTraitDefinition()
-             ->analyzerIsNot('Modules/DefinedTraits')
              ->isNotIgnored()
-             ->hasNoOut('USED')
+             ->isNot('isPhp', true)
+             ->isNot('isExt', true)
              ->isNot('isStub', true);
         $this->prepareQuery();
     }

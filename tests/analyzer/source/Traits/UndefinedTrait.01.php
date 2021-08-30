@@ -15,12 +15,13 @@ class E {}
 namespace G {
 
 use T as ttt;
+use G\T as ttt2;
 use F\t as TT;
 
 class A extends E implements I1,I2 {
     use T;
     use TT;
-    use ttt;
+    use ttt, ttt2;
     use undefined;
 }
 

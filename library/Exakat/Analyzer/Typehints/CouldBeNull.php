@@ -61,20 +61,20 @@ class CouldBeNull extends CouldBeType {
         // return type
         $this->checkReturnedAtoms($nullAtoms);
 
-        $this->checkReturnedCalls(array('Null'), array());
+        $this->checkReturnedCalls($nullAtoms, array());
 
         $this->checkReturnedPHPTypes('null');
 
         $this->checkReturnedDefault($nullAtoms);
 
-        $this->checkReturnedTypehint(array('Null'), array());
+        $this->checkReturnedTypehint($nullAtoms, array('\\null'));
 
         // arguments
         // function ($a = int)
         $this->checkArgumentDefaultValues($nullAtoms);
 
         // function ($a) { bar($a);} function bar(array $b) {}
-        $this->checkRelayedArgument(array('Null'), array());
+        $this->checkRelayedArgument($nullAtoms, array());
 
         // function ($a) { pow($a, 2);}
         $this->checkRelayedArgumentToPHP('null');

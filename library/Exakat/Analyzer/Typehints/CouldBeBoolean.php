@@ -26,38 +26,46 @@ namespace Exakat\Analyzer\Typehints;
 class CouldBeBoolean extends CouldBeType {
     public function analyze(): void {
         $booleanAtoms = array('Comparison', 'Logical', 'Boolean', 'Not');
+        $boolFnp = array('\\bool');
 
         // property : based on default value (created or not)
-        $this->checkPropertyDefault($booleanAtoms);
+        $this->checkPropertyDefault($booleanAtoms, array('T_SPACESHIP'));
 
         $this->checkPropertyRelayedDefault($booleanAtoms);
 
         // property relayed typehint
-        $this->checkPropertyRelayedTypehint(array('Scalartypehint'), array('\\bool'));
+        $this->checkPropertyRelayedTypehint(array('Scalartypehint'), $boolFnp);
 
         // property relayed typehint
-        $this->checkPropertyWithCalls(array('Scalartypehint'), array('\\bool'));
+        $this->checkPropertyWithCalls(array('Scalartypehint'), $boolFnp);
         $this->checkPropertyWithPHPCalls('bool');
 
         // return type
-        $this->checkReturnedAtoms($booleanAtoms);
+        $this->checkReturnedAtoms($booleanAtoms, array('T_SPACESHIP'));
 
-        $this->checkReturnedCalls(array('Scalartypehint'), array('\\bool'));
+        $this->checkReturnedCalls(array('Scalartypehint'), $boolFnp);
 
         $this->checkReturnedPHPTypes('bool');
 
         $this->checkReturnedDefault($booleanAtoms);
 
-        $this->checkReturnedTypehint(array('Scalartypehint'), array('\\bool'));
+        $this->checkReturnedTypehint(array('Scalartypehint'), $boolFnp);
 
         // argument type
         $this->checkArgumentUsage(array('Variablearray'));
 
+        // class a implements b { function () : bool {} }
+        $this->checkOverwrittenReturnType($boolFnp);
+
+        // argument type
+        // class a implements b { function ($a = bool) {} }
+        $this->checkOverwrittenArgumentType($boolFnp);
+        
         // function ($a = array())
         $this->checkArgumentDefaultValues($booleanAtoms);
 
         // function ($a) { bar($a);} function bar(array $b) {}
-        $this->checkRelayedArgument(array('Scalartypehint'), array('\\bool'));
+        $this->checkRelayedArgument(array('Scalartypehint'), $boolFnp);
 
         // function ($a) { array_diff($a);}
         $this->checkRelayedArgumentToPHP('bool');
@@ -74,7 +82,7 @@ class CouldBeBoolean extends CouldBeType {
              ->outIs('NAME')
              ->outIs('DEFINITION')
              ->inIs(array('LEFT', 'RIGHT'))
-             ->atomIs(array('Comparison', 'Logical', 'Not'))
+             ->atomIs(array('Logical', 'Not'))
              ->back('result');
         $this->prepareQuery();
 

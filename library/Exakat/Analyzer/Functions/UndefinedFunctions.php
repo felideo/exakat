@@ -26,21 +26,13 @@ namespace Exakat\Analyzer\Functions;
 use Exakat\Analyzer\Analyzer;
 
 class UndefinedFunctions extends Analyzer {
-    public function dependsOn(): array {
-        return array('Functions/IsExtFunction',
-                     'Modules/DefinedFunctions',
-                    );
-    }
-
     public function analyze(): void {
         // foo(); (no function foo())
         $this->atomIs('Functioncall')
              ->has('fullnspath')
-             ->analyzerIsNot(array('Functions/IsExtFunction',
-                                   'Modules/DefinedFunctions',
-                                   )
-              )
              ->isNot('isPhp', true)
+             ->isNot('isExt', true)
+             ->isNot('isStub', true)
              ->hasNoFunctionDefinition()
              ->isNotIgnored();
         $this->prepareQuery();

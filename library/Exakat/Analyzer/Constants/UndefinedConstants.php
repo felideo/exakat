@@ -49,6 +49,8 @@ class UndefinedConstants extends Analyzer {
                      ->atomIs(array('Variable', 'Member'))
              )
              ->isNot('isPhp', true)
+             ->isNot('isExt', true)
+             ->isNot('isStub', true)
              ->isNotIgnored()
              ->hasNoIn('DEFINITION');
         $this->prepareQuery();

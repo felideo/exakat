@@ -50,6 +50,15 @@ class WrongNumberOfArguments extends Analyzer {
             }
         }
 
+        $stubs = exakat('stubs')->getFunctionsArgsInterval();
+        foreach($stubs as $function) {
+            $argsMins[makefullnspath($function['name'])] = $function['args_min'];
+
+            if ($function['args_max'] < \MAX_ARGS) {
+                $argsMaxs[makefullnspath($function['name'])] = $function['args_max'];
+            }
+        }
+
        $this->atomFunctionIs(array_keys($argsMins))
             ->savePropertyAs('fullnspath', 'fnp')
             ->hasNoVariadicArgument()
@@ -65,6 +74,7 @@ class WrongNumberOfArguments extends Analyzer {
        $this->prepareQuery();
 
         // this is for custom functions
+        // function foo(1, 2)
         $this->atomIs(self::FUNCTIONS_CALLS)
              ->outIsIE('METHOD') // for methods calls, static or not.
              ->hasNoVariadicArgument()
@@ -75,6 +85,38 @@ class WrongNumberOfArguments extends Analyzer {
              ->atomIs(self::FUNCTIONS_ALL)
              ->analyzerIsNot('Functions/VariableArguments')
              ->isMore('args_min', 'args_count')
+             ->back('first');
+        $this->prepareQuery();
+
+        // this is for custom functions
+        // foo(...[1,2,])
+        $this->atomIs(self::FUNCTIONS_CALLS)
+             ->outIsIE('METHOD') // for methods calls, static or not.
+             ->outWithRank('ARGUMENT', 0)
+             ->is('variadic', true)
+             ->savePropertyAs('count', 'args_count')
+             ->back('first')
+             ->inIsIE('NEW')
+             ->inIs('DEFINITION')
+             ->atomIs(self::FUNCTIONS_ALL)
+             ->analyzerIsNot('Functions/VariableArguments')
+             ->isLess('args_max', 'args_count')
+             ->back('first');
+        $this->prepareQuery();
+
+        // this is for custom functions
+        // foo(...[1,2,])
+        $this->atomIs(self::FUNCTIONS_CALLS)
+             ->outIsIE('METHOD') // for methods calls, static or not.
+             ->outWithRank('ARGUMENT', 0)
+             ->is('variadic', true)
+             ->savePropertyAs('count', 'args_count')
+             ->back('first')
+             ->inIsIE('NEW')
+             ->inIs('DEFINITION')
+             ->atomIs(self::FUNCTIONS_ALL)
+             ->analyzerIsNot('Functions/VariableArguments')
+             ->isMore('args_max', 'args_count')
              ->back('first');
         $this->prepareQuery();
 
@@ -92,12 +134,42 @@ class WrongNumberOfArguments extends Analyzer {
              ->back('first');
         $this->prepareQuery();
 
+        // this is for custom functions
+        // new classe(...[1,2,])
+        $this->atomIs('New')
+             ->outIs('NEW')
+             ->outWithRank('ARGUMENT', 0)
+             ->is('variadic', true)
+             ->savePropertyAs('count', 'args_count')
+             ->inIs('ARGUMENT')
+             ->outIs('DEFINITION')
+             ->atomIs('Magicmethod')
+             ->analyzerIsNot('Functions/VariableArguments')
+             ->isLess('args_min', 'args_count')
+             ->back('first');
+        $this->prepareQuery();
+
         // new A($a)
         // new class($a) { function __construct() {}}
         $this->atomIs('New')
              ->outIs('NEW')
              ->hasNoVariadicArgument()
              ->savePropertyAs('count', 'args_count')
+             ->outIs('DEFINITION')
+             ->atomIs('Magicmethod')
+             ->analyzerIsNot('Functions/VariableArguments')
+             ->isMore('args_max', 'args_count')
+             ->back('first');
+        $this->prepareQuery();
+
+        // this is for custom functions
+        // new classe(...[1,2,])
+        $this->atomIs('New')
+             ->outIs('NEW')
+             ->outWithRank('ARGUMENT', 0)
+             ->is('variadic', true)
+             ->savePropertyAs('count', 'args_count')
+             ->inIs('ARGUMENT')
              ->outIs('DEFINITION')
              ->atomIs('Magicmethod')
              ->analyzerIsNot('Functions/VariableArguments')

@@ -47,6 +47,20 @@ class KillsApp extends Analyzer {
              ->back('first');
         $this->prepareQuery();
 
+        // #[NoReturn] as attribute
+        $this->atomIs(self::FUNCTIONS_ALL)
+             ->outIs('ATTRIBUTE')
+             ->fullnspathIs('\\noreturn')
+             ->back('first');
+        $this->prepareQuery();
+
+        // @NoReturn as phpdoc
+        $this->atomIs(self::FUNCTIONS_ALL)
+             ->outIs('PHPDOC')
+             ->regexIs('fullcode', '(?i)@noreturn')
+             ->back('first');
+        $this->prepareQuery();
+
         // second round
         $this->atomIs(self::FUNCTIONS_ALL)
              ->outIs('BLOCK')
@@ -58,7 +72,7 @@ class KillsApp extends Analyzer {
              ->back('first');
         $this->prepareQuery();
 
-        // third round
+        // third round (Identical to the previous)
         $this->atomIs(self::FUNCTIONS_ALL)
              ->outIs('BLOCK')
              // We need this straight in the main sequence, not deep in a condition

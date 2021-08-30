@@ -27,17 +27,21 @@ use Exakat\Query\DSL\FollowParAs;
 class CouldBeFloat extends CouldBeType {
     public function analyze(): void {
         $floatAtoms = array('Float', 'Addition', 'Multiplication', 'Not', 'Power');
+        $floatFnp = array('\\float');
 
         // property : based on default value (created or not)
         $this->checkPropertyDefault($floatAtoms);
 
+        // property : based usage of the property
+        $this->checkPropertyUsage($floatAtoms);
+
         $this->checkPropertyRelayedDefault($floatAtoms);
 
         // property relayed typehint
-        $this->checkPropertyRelayedtypehint(array('Scalartypehint'), array('\\float'));
+        $this->checkPropertyRelayedtypehint(array('Scalartypehint'), $floatFnp);
 
         // property relayed typehint
-        $this->checkPropertyWithCalls(array('Scalartypehint'), array('\\float'));
+        $this->checkPropertyWithCalls(array('Scalartypehint'), $floatFnp);
         $this->checkPropertyWithPHPCalls('float');
 
         // argument type : $x[$arg]
@@ -53,13 +57,16 @@ class CouldBeFloat extends CouldBeType {
         // return type
         $this->checkReturnedAtoms($floatAtoms);
 
-        $this->checkReturnedCalls(array('Scalartypehint'), array('\\float'));
+        $this->checkReturnedCalls(array('Scalartypehint'), $floatFnp);
 
         $this->checkReturnedPHPTypes('float');
 
         $this->checkReturnedDefault($floatAtoms);
 
-        $this->checkReturnedtypehint(array('Scalartypehint'), array('\\float'));
+        $this->checkReturnedtypehint(array('Scalartypehint'), $floatFnp);
+
+        // class a implements b { function () : float {} }
+        $this->checkOverwrittenReturnType($floatFnp);
 
         // return type : return $a->b += 3.3;
         $this->atomIs(self::FUNCTIONS_ALL)
@@ -97,17 +104,23 @@ class CouldBeFloat extends CouldBeType {
              ->back('result');
         $this->prepareQuery();
 
+        // class a implements b { function (int $a) {} }
+        $this->checkOverwrittenArgumentType($floatFnp);
+
         // function ($a = float)
         $this->checkArgumentDefaultValues($floatAtoms);
 
-        // function ($a) { bar($a);} function bar(array $b) {}
-        $this->checkRelayedArgument(array('Scalartypehint'), array('\\float'));
+        // function ($a) { bar($a);} function bar(float $b) {}
+        $this->checkRelayedArgument(array('Scalartypehint'), $floatFnp);
 
         // function ($a) { pow($a, 2);}
         $this->checkRelayedArgumentToPHP('float');
 
         // argument validation
         $this->checkArgumentValidation(array('\\is_float'), $floatAtoms);
+
+        // foo(1); function foo($a) {}
+        $this->checkCallingArgumentType(array('Float'));
 
         // argument because used in a specific operation
         // $arg && ''

@@ -26,18 +26,22 @@ use Exakat\Query\DSL\FollowParAs;
 
 class CouldBeInt extends CouldBeType {
     public function analyze(): void {
-        $intAtoms = array('Integer', 'Addition', 'Multiplication', 'Not', 'Power');
+        $intAtoms = array('Integer', 'Addition', 'Multiplication', 'Not', 'Power', 'Preplusplus', 'Postplusplus', 'Spaceship');
+        $intFnp = array('\\int');
 
         // property : based on default value (created or not)
         $this->checkPropertyDefault($intAtoms);
 
+        // property : based usage of the property
+        $this->checkPropertyUsage($intAtoms);
+
         $this->checkPropertyRelayedDefault($intAtoms);
 
         // property relayed typehint
-        $this->checkPropertyRelayedTypehint(array('Scalartypehint'), array('\\int'));
+        $this->checkPropertyRelayedTypehint(array('Scalartypehint'), $intFnp);
 
         // property relayed typehint
-        $this->checkPropertyWithCalls(array('Scalartypehint'), array('\\int'));
+        $this->checkPropertyWithCalls(array('Scalartypehint'), $intFnp);
         $this->checkPropertyWithPHPCalls('int');
 
         // argument type : $x[$arg]
@@ -62,13 +66,16 @@ class CouldBeInt extends CouldBeType {
         // return type
         $this->checkReturnedAtoms($intAtoms);
 
-        $this->checkReturnedCalls(array('Scalartypehint'), array('\\int'));
+        $this->checkReturnedCalls(array('Scalartypehint'), $intFnp);
 
         $this->checkReturnedPHPTypes('int');
 
         $this->checkReturnedDefault($intAtoms);
 
-        $this->checkReturnedTypehint(array('Scalartypehint'), array('\\int'));
+        $this->checkReturnedTypehint(array('Scalartypehint'), $intFnp);
+
+        // class a implements b { function () : int {} }
+        $this->checkOverwrittenReturnType($intFnp);
 
         // return type : return $a->b += 3;
         $this->atomIs(self::FUNCTIONS_ALL)
@@ -106,11 +113,14 @@ class CouldBeInt extends CouldBeType {
              ->back('result');
         $this->prepareQuery();
 
+        // class a implements b { function ($a = int) {} }
+        $this->checkOverwrittenArgumentType($intFnp);
+
         // function ($a = int)
         $this->checkArgumentDefaultValues($intAtoms);
 
         // function ($a) { bar($a);} function bar(array $b) {}
-        $this->checkRelayedArgument(array('Scalartypehint'), array('\\int'));
+        $this->checkRelayedArgument(array('Scalartypehint'), $intFnp);
 
         // function ($a) { pow($a, 2);}
         $this->checkRelayedArgumentToPHP('int');
@@ -120,6 +130,9 @@ class CouldBeInt extends CouldBeType {
 
         // (int) or intval
         $this->checkCastArgument('T_INT_CAST', array('\\intval'));
+
+        // foo(1); function foo($a) {}
+        $this->checkCallingArgumentType(array('Integer'));
 
         // argument because used in a specific operation
         // $arg && ''

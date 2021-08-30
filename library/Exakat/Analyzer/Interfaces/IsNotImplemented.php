@@ -28,15 +28,19 @@ class IsNotImplemented extends Analyzer {
     public function analyze(): void {
         // interface i { function i() {}}
         // class c implements i {       }
-        $this->atomIs(self::CLASSES_ALL)
+        $this->atomIs('Interface')
+             ->collectMethods('interfaceMethods')
+             ->raw('filter{interfaceMethods.size() > 0;}')
+             ->goToAllChildren(self::EXCLUDE_SELF)
+             ->atomIs(self::CLASSES_ALL)
              ->isNot('abstract', true)
              ->collectMethods('classMethods')
-             ->goToAllImplements(self::INCLUDE_SELF)
-             ->atomIs('Interface')
-             ->collectMethods('interfaceMethods')
-             ->raw('filter{interfaceMethods.size() > classMethods.size() || !classMethods.containsAll(interfaceMethods);}')
-             ->back('first');
+             ->raw('filter{interfaceMethods.size() > classMethods.size() || !classMethods.containsAll(interfaceMethods);}');
         $this->prepareQuery();
+
+        // todo : check for cross over interfaces
+        // warning : methods may be spread over multiple classes
+        // interface i { i1, i2} class a { function i1()} class b implement i { function i2()}
     }
 }
 

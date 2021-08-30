@@ -26,6 +26,8 @@ class CreateMagicProperty extends Complete {
     public function dependsOn(): array {
         return array('Complete/OverwrittenProperties',
                      'Complete/SetClassRemoteDefinitionWithTypehint',
+                     'Complete/CreateDefaultValues',
+                     'Complete/SetClassRemoteDefinitionWithLocalNew',
                     );
     }
 
@@ -35,7 +37,6 @@ class CreateMagicProperty extends Complete {
 
         // link to __get
         $this->atomIs('Member', self::WITHOUT_CONSTANTS)
-             ->is('isRead', true)
              ->not(
                 $this->side()
                      ->inIs('DEFINITION')
@@ -55,6 +56,13 @@ class CreateMagicProperty extends Complete {
                      ->inIs('NAME')
                      ->atomIs('Parameter', self::WITHOUT_CONSTANTS)
                      ->outIs('TYPEHINT')
+                     ->inIs('DEFINITION')
+             )
+             ->optional(  // for local variables
+                $this->side()
+                     ->outIs('DEFAULT')
+                     ->atomIs('New')
+                     ->outIs('NEW')
                      ->inIs('DEFINITION')
              )
 
@@ -236,6 +244,20 @@ class CreateMagicProperty extends Complete {
              ->outIs('LEFT')
              ->inIs('DEFINITION')
              ->outIs('DEFINITION')
+             ->inIs('NAME')
+             ->atomIs('Functioncall')
+             ->addEFrom('DEFINITION', 'first');
+        $this->prepareQuery();
+
+        // $this($a, $b);
+        $this->atomIs('Magicmethod', self::WITHOUT_CONSTANTS)
+             ->outIs('NAME')
+             ->codeIs('__invoke', self::TRANSLATE, self::CASE_INSENSITIVE)
+             ->back('first')
+
+             ->inIs('MAGICMETHOD')
+             ->outIs('DEFINITION')
+             ->atomIs('This')
              ->inIs('NAME')
              ->atomIs('Functioncall')
              ->addEFrom('DEFINITION', 'first');

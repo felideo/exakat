@@ -73,6 +73,9 @@ class CouldBeCIT extends CouldBeType {
         // argument validation
         $this->checkArgumentValidation(array('\\is_object'), array());
 
+        // foo(new A); function foo($a) {}
+        $this->checkCallingArgumentType(array('New', 'Nsname', 'Identifier', 'Clone')); 
+
         // $arg instanceof B
         $this->atomIs(self::FUNCTIONS_ALL)
              ->outIs('ARGUMENT')

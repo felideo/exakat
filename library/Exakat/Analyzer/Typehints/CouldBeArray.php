@@ -26,6 +26,8 @@ class CouldBeArray extends CouldBeType {
     // dependsOn is in CouldBeType class
 
     public function analyze(): void {
+        $arrayFnp = array('\\array');
+        
         // property with default
         $this->checkPropertyDefault(array('Arrayliteral'));
 
@@ -33,24 +35,30 @@ class CouldBeArray extends CouldBeType {
         $this->checkPropertyRelayedDefault(array('Arrayliteral'));
 
         // property relayed typehint
-        $this->checkPropertyRelayedTypehint(array('Scalartypehint'), array('\\array'));
+        $this->checkPropertyRelayedTypehint(array('Scalartypehint'), $arrayFnp);
 
         // property relayed typehint
-        $this->checkPropertyWithCalls(array('Scalartypehint'), array('\\array'));
+        $this->checkPropertyWithCalls(array('Scalartypehint'), $arrayFnp);
         $this->checkPropertyWithPHPCalls('array');
 
         // return type
         $this->checkReturnedAtoms(array('Arrayliteral'));
 
-        $this->checkReturnedCalls(array('Scalartypehint'), array('\\array'));
+        $this->checkReturnedCalls(array('Scalartypehint'), $arrayFnp);
 
         $this->checkReturnedPHPTypes('array');
 
         $this->checkReturnedDefault(array('Arrayliteral'));
 
-        $this->checkReturnedTypehint(array('Scalartypehint'), array('\\array'));
+        $this->checkReturnedTypehint(array('Scalartypehint'), $arrayFnp);
+
+        // class a implements b { function () : array {} }
+        $this->checkOverwrittenReturnType($arrayFnp);
 
         // argument type
+        // class a implements b { function ($a = array) {} }
+        $this->checkOverwrittenArgumentType($arrayFnp);
+
         // $arg[]
         $this->checkArgumentUsage(array('Variablearray'));
 
@@ -58,7 +66,7 @@ class CouldBeArray extends CouldBeType {
         $this->checkArgumentDefaultValues(array('Arrayliteral'));
 
         // function ($a) { bar($a);} function bar(array $b) {}
-        $this->checkRelayedArgument(array('Scalartypehint'), array('\\array'));
+        $this->checkRelayedArgument(array('Scalartypehint'), $arrayFnp);
 
         // function ($a) { array_diff($a);}
         $this->checkRelayedArgumentToPHP('array');

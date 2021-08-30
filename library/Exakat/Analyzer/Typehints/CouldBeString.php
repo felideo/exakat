@@ -28,6 +28,7 @@ class CouldBeString extends CouldBeType {
 
     public function analyze(): void {
         $stringAtoms = self::STRINGS_LITERALS;
+        $stringFnp = array('\\string');
 
         $this->checkPropertyDefault($stringAtoms);
 
@@ -35,10 +36,10 @@ class CouldBeString extends CouldBeType {
         $this->checkPropertyRelayedDefault($stringAtoms);
 
         // property relayed typehint
-        $this->checkPropertyRelayedTypehint(array('Scalartypehint'), array('\\string'));
+        $this->checkPropertyRelayedTypehint(array('Scalartypehint'), $stringFnp);
 
         // property relayed typehint
-        $this->checkPropertyWithCalls(array('Scalartypehint'), array('\\string'));
+        $this->checkPropertyWithCalls(array('Scalartypehint'), $stringFnp);
         $this->checkPropertyWithPHPCalls('string');
 
         // $a[$b->property] : could be a string or an integer
@@ -56,13 +57,16 @@ class CouldBeString extends CouldBeType {
         // return type
         $this->checkReturnedAtoms($stringAtoms);
 
-        $this->checkReturnedCalls(array('Scalartypehint'), array('\\string'));
+        $this->checkReturnedCalls(array('Scalartypehint'), $stringFnp);
 
         $this->checkReturnedPHPTypes('string');
 
         $this->checkReturnedDefault($stringAtoms);
 
-        $this->checkReturnedTypehint(array('Scalartypehint'), array('\\string'));
+        $this->checkReturnedTypehint(array('Scalartypehint'), $stringFnp);
+
+        // class a implements b { function () : string {} }
+        $this->checkOverwrittenReturnType($stringFnp);
 
         // return type : return $a->b .= "s";
         $this->atomIs(self::FUNCTIONS_ALL)
@@ -76,11 +80,15 @@ class CouldBeString extends CouldBeType {
         $this->prepareQuery();
 
         // argument type
+
+        // class a implements b { function ($a = string) {} }
+        $this->checkOverwrittenArgumentType($stringFnp);
+
         // function ($a = array())
         $this->checkArgumentDefaultValues($stringAtoms);
 
         // function ($a) { bar($a);} function bar(array $b) {}
-        $this->checkRelayedArgument(array('Scalartypehint'), array('\\string'));
+        $this->checkRelayedArgument(array('Scalartypehint'), $stringFnp);
 
         // function ($a) { array_diff($a);}
         $this->checkRelayedArgumentToPHP('string');
@@ -90,6 +98,9 @@ class CouldBeString extends CouldBeType {
 
         // (string) or strval
         $this->checkCastArgument('T_STRING_CAST', array('\\strval'));
+        
+        // foo('a'); function foo($a) {}
+        $this->checkCallingArgumentType(array('String', 'Heredoc', 'Concatenation'));
 
         // argument because used in a specific operation
         // $arg . ''

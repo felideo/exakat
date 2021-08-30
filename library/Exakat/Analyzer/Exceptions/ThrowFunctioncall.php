@@ -32,11 +32,13 @@ class ThrowFunctioncall extends Analyzer {
         // throw className(), defined class, no function
         $this->atomIs('Throw')
              ->outIs('THROW')
-             ->tokenIs(self::STATICCALL_TOKEN)
-             ->atomIs('Functioncall')
+             ->tokenIs(array_merge(self::STATICCALL_TOKEN, array('T_OBJECT_OPERATOR', 'T_DOUBLE_COLON', 'T_NULLSAFE_OBJECT_OPERATOR', 'T_OPEN_BRACKET')))
+             ->atomIs(array('Functioncall', 'Staticmethodcall', 'Methodcall'))
              ->hasNoFunctionDefinition()
              ->back('first');
         $this->prepareQuery();
+
+        // todo : consider typehint : a functioncall may return an exception, a property may be typed Exception.
 
         // throw RuntimeException()
         $this->atomIs('Throw')

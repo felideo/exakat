@@ -24,6 +24,7 @@
 namespace Exakat\Analyzer\Structures;
 
 use Exakat\Analyzer\Analyzer;
+use Exakat\Query\DSL\FollowParAs;
 
 class MultiplyByOne extends Analyzer {
     public function dependsOn(): array {
@@ -38,6 +39,9 @@ class MultiplyByOne extends Analyzer {
         $this->atomIs('Assignation')
              ->codeIs(array('*=', '/=', '%=', '**='))
              ->outIs('RIGHT')
+             ->followParAs(FollowParAs::FOLLOW_PARAS_ONLY)
+             ->atomIsNot(array('Ternary', 'Coalesce'))
+             ->atomIsNot('Variable')
              ->atomIs($atoms, self::WITH_CONSTANTS)
              ->is('intval', 1)
              ->regexIs('noDelimiter', '^1\\\\.?0*\\$')
@@ -48,6 +52,9 @@ class MultiplyByOne extends Analyzer {
         $this->atomIs('Multiplication')
              ->codeIs('*')
              ->outIs(array('LEFT', 'RIGHT'))
+             ->followParAs(FollowParAs::FOLLOW_PARAS_ONLY)
+             ->atomIsNot(array('Ternary', 'Coalesce'))
+             ->atomIsNot('Variable')
              ->atomIs($atoms, self::WITH_CONSTANTS)
              ->is('intval', 1)
              ->regexIs('noDelimiter', '^1\\\\.?0*\\$')
@@ -57,6 +64,9 @@ class MultiplyByOne extends Analyzer {
         $this->atomIs('Multiplication')
              ->codeIs(array('/', '%'))
              ->outIs('RIGHT')
+             ->followParAs(FollowParAs::FOLLOW_PARAS_ONLY)
+             ->atomIsNot(array('Ternary', 'Coalesce'))
+             ->atomIsNot('Variable')
              ->atomIs($atoms, self::WITH_CONSTANTS)
              ->is('intval', 1)
              ->regexIs('noDelimiter', '^1\\\\.?0*\\$')

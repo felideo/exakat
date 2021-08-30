@@ -61,7 +61,7 @@ class UseConstantAsArguments extends Analyzer {
              ->savePropertyAs('fullnspath', 'fqn')
              ->outIs('ARGUMENT')
              ->isHash('rank', $positionsWithConstants, 'fqn')
-             ->atomIs(array('Boolean', 'Null', 'Integer', 'Float', 'String', 'Concatenation', 'Logical', 'Bitoperation'))
+             ->atomIs(array('Boolean', 'Null', 'Integer', 'Float', 'String', 'Concatenation', 'Logical', 'Bitoperation', 'Spaceship'))
              ->back('first');
         $this->prepareQuery();
 
@@ -170,7 +170,7 @@ class UseConstantAsArguments extends Analyzer {
             $this->atomFunctionIs(array_keys($constantsWithPosition))
                  ->analyzerIsNot('self')
                  ->savePropertyAs('fullnspath', 'fqn')
-                 ->outWithRank('ARGUMENT', (int) $position)
+                 ->outWithRank('ARGUMENT', $position)
                  ->atomIs(array('Bitoperation', 'Identifier', 'Nsname'))
                  ->atomInsideNoDefinition(self::CONSTANTS_ALL)
                  ->analyzerIsNot('Constants/IsPhpConstant')
@@ -180,7 +180,7 @@ class UseConstantAsArguments extends Analyzer {
             $this->atomFunctionIs(array_keys($constantsWithPosition))
                  ->analyzerIsNot('self')
                  ->savePropertyAs('fullnspath', 'fqn')
-                 ->outWithRank('ARGUMENT', (int) $position)
+                 ->outWithRank('ARGUMENT', $position)
                  ->atomIs(array('Bitoperation', 'Identifier', 'Nsname'))
                  ->atomInsideNoDefinition(self::CONSTANTS_ALL)
                  ->analyzerIs('Constants/IsPhpConstant')
@@ -192,7 +192,7 @@ class UseConstantAsArguments extends Analyzer {
             $this->atomFunctionIs(array_keys($constantsWithPosition))
                  ->analyzerIsNot('self')
                  ->savePropertyAs('fullnspath', 'fqn')
-                 ->outWithRank('ARGUMENT', (int) $position)
+                 ->outWithRank('ARGUMENT', $position)
                  ->atomIs(array('Bitoperation', 'Identifier', 'Nsname'))
                  ->atomInsideNoDefinition(self::CONSTANTS_ALL)
                  ->analyzerIs('Constants/IsPhpConstant')

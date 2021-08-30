@@ -7,7 +7,7 @@ use Test\Analyzer;
 include_once dirname(__DIR__, 2).'/Test/Analyzer.php';
 
 class MultiplyByOne extends Analyzer {
-    /* 8 methods */
+    /* 9 methods */
 
     public function testStructures_MultiplyByOne01()  { $this->generic_test('Structures_MultiplyByOne.01'); }
     public function testStructures_MultiplyByOne02()  { $this->generic_test('Structures_MultiplyByOne.02'); }
@@ -17,5 +17,6 @@ class MultiplyByOne extends Analyzer {
     public function testStructures_MultiplyByOne06()  { $this->generic_test('Structures/MultiplyByOne.06'); }
     public function testStructures_MultiplyByOne07()  { $this->generic_test('Structures/MultiplyByOne.07'); }
     public function testStructures_MultiplyByOne08()  { $this->generic_test('Structures/MultiplyByOne.08'); }
+    public function testStructures_MultiplyByOne09()  { $this->generic_test('Structures/MultiplyByOne.09'); }
 }
 ?>

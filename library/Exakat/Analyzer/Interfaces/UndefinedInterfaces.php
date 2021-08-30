@@ -26,31 +26,23 @@ namespace Exakat\Analyzer\Interfaces;
 use Exakat\Analyzer\Analyzer;
 
 class UndefinedInterfaces extends Analyzer {
-    public function dependsOn(): array {
-        return array('Classes/IsExtClass',
-                     'Interfaces/IsExtInterface',
-                     'Composer/IsComposerClass',
-                     'Composer/IsComposerInterface',
-                     'Modules/DefinedInterfaces',
-                     'Modules/DefinedClasses',
-                     );
-    }
-
     public function analyze(): void {
-        $omitted = $this->dependsOn();
-
         // interface used in a class
         $this->atomIs(self::CLASSES_ALL)
              ->outIs('IMPLEMENTS')
              ->hasNoIn('DEFINITION')
-             ->analyzerIsNot($omitted);
+             ->isNot('isPhp', true)
+             ->isNot('isExt', true)
+             ->isNot('isStub', true);
         $this->prepareQuery();
 
         // interface extending another interface
         $this->atomIs('Interface')
              ->outIs('EXTENDS')
              ->hasNoIn('DEFINITION')
-             ->analyzerIsNot($omitted);
+             ->isNot('isPhp', true)
+             ->isNot('isExt', true)
+             ->isNot('isStub', true);
         $this->prepareQuery();
 
         // interface used in a instanceof nor a Typehint but not defined
@@ -61,7 +53,9 @@ class UndefinedInterfaces extends Analyzer {
              ->noClassDefinition()
              ->noInterfaceDefinition()
              ->isNotIgnored()
-             ->analyzerIsNot($omitted);
+             ->isNot('isPhp', true)
+             ->isNot('isExt', true)
+             ->isNot('isStub', true);
         $this->prepareQuery();
 
         $this->atomIs(self::CONSTANTS_ALL)
@@ -72,7 +66,9 @@ class UndefinedInterfaces extends Analyzer {
              ->noInterfaceDefinition()
              ->noUseDefinition()
              ->isNotIgnored()
-             ->analyzerIsNot($omitted);
+             ->isNot('isPhp', true)
+             ->isNot('isExt', true)
+             ->isNot('isStub', true);
         $this->prepareQuery();
     }
 }

@@ -4,7 +4,8 @@ $expected     = array('$this->undefined',
                       'x::$y',
                      );
 
-$expected_not = array('$this->undefinedButMagic',
+$expected_not = array('$this->defined',
+                      '$this->undefinedButMagic',
                       '$y->undefinedButNotInternal',
                      );
 

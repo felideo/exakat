@@ -32,6 +32,8 @@ abstract class CouldBeType extends Analyzer {
                      'Complete/CreateDefaultValues',
                      'Complete/OverwrittenMethods',
                      'Complete/OverwrittenProperties',
+                     'Complete/SetClassRemoteDefinitionWithTypehint',
+                     'Functions/IsGenerator',
                     );
     }
 
@@ -47,11 +49,6 @@ abstract class CouldBeType extends Analyzer {
                      ->inIs('OVERWRITE')
              )
              ->outIs('ARGUMENT')
-             ->filter(
-                 $this->side()
-                      ->outIs('TYPEHINT')
-                      ->atomIs('Void')
-              )
              ->as('result')
              ->analyzerIsNot('self')
              ->outIs('DEFAULT')
@@ -196,13 +193,110 @@ abstract class CouldBeType extends Analyzer {
         }
     }
 
+    protected function checkCallingArgumentType(array $types = array()): void {
+        if (empty($types)) {
+            return ;
+        }
+
+        // foo($arg) { array_map($arg, '') ; }
+        $this->atomIs('Parameter')
+             ->analyzerIsNot('self')
+             ->filter(
+                $this->side()
+                     ->outIs('TYPEHINT')
+                     ->atomIs('Void')
+             )
+             ->goToParameterUsage()
+             ->atomIs($types)
+
+             ->back('first');
+        $this->prepareQuery();
+
+        // foo(C $arg) { bar($arg); } function bar($c)
+        $this->atomIs('Parameter')
+             ->analyzerIsNot('self')
+             ->filter(
+                $this->side()
+                     ->outIs('TYPEHINT')
+                     ->atomIs('Void')
+             )
+             ->goToParameterUsage()
+             ->inIs('DEFINITION')  // argument and variables
+             ->inIs('NAME')
+             ->outIs('TYPEHINT')
+             ->atomIs($types)
+
+             ->back('first');
+        $this->prepareQuery();
+
+        // function foo() : A {}; bar(foo()) function bar($c)
+        $this->atomIs('Parameter')
+             ->analyzerIsNot('self')
+             ->filter(
+                $this->side()
+                     ->outIs('TYPEHINT')
+                     ->atomIs('Void')
+             )
+             ->goToParameterUsage()
+             ->atomIs("Functioncall")
+             ->inIs('DEFINITION')  // argument and variables
+             ->outIs('RETURNTYPE')
+             ->atomIs($types)
+
+             ->back('first');
+        $this->prepareQuery();
+
+        // private A $t; bar($this->t) function bar($c)
+        $this->atomIs('Parameter')
+             ->analyzerIsNot('self')
+             ->filter(
+                $this->side()
+                     ->outIs('TYPEHINT')
+                     ->atomIs('Void')
+             )
+             ->goToParameterUsage()
+             ->atomIs("Member")
+             ->inIs('DEFINITION')  // argument and variables
+             ->inIs('PPP')
+             ->outIs('TYPEHINT')
+             ->atomIs($types)
+
+             ->back('first');
+        $this->prepareQuery();
+    }
+
+    protected function checkOverwrittenArgumentType(array $fnp = array()): void {
+        if (empty($fnp)) {
+            return ;
+        }
+
+        // foo($arg) {  }
+        $this->atomIs('Parameter')
+             ->analyzerIsNot('self')
+             ->savePropertyAs('rank', 'ranked')
+             ->filter(
+                $this->side()
+                     ->outIs('TYPEHINT')
+                     ->atomIs('Void')
+             )
+             ->inIs('ARGUMENT')
+             ->atomIs('Method')
+             ->outIs('OVERWRITE')
+             ->outWithRank('ARGUMENT', 'ranked')
+             ->outIs('TYPEHINT')
+             ->fullnspathIs($fnp)
+             ->back('first');
+        $this->prepareQuery();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //  Return types
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    protected function checkReturnedAtoms(array $atoms = array()): void {
+    protected function checkReturnedAtoms(array $atoms = array(), array $noToken = array()): void {
         // return array(1,2,3)
         $this->atomIs(self::FUNCTIONS_ALL)
              ->analyzerIsNot('self')
+             ->analyzerIsNot('Functions/IsGenerator')
              ->optional(
                 $this->side()
                      ->is('abstract', true)
@@ -211,7 +305,30 @@ abstract class CouldBeType extends Analyzer {
              ->outIs('RETURNED')
              ->hasIn('RETURN')
              ->followParAs(FollowParAs::FOLLOW_PARAS_ONLY)
-             ->atomIs($atoms, self::WITH_CONSTANTS)
+             ->atomIs($atoms, self::WITH_CONSTANTS);
+
+        if (!empty($noToken)) {
+            $this->tokenIsNot($noToken);
+        }
+
+        $this->back('first');
+        $this->prepareQuery();
+    }
+
+    protected function checkOverwrittenReturnType(array $fnp = array()): void {
+        if (empty($fnp)) {
+            return ;
+        }
+
+        // foo($arg) {  }
+        $this->atomIs('Method')
+             ->analyzerIsNot('self')
+             ->outIs('RETURNTYPE')
+             ->atomIs('Void')
+             ->back('first')
+             ->inIs('OVERWRITE')
+             ->outIs('RETURNTYPE')
+             ->fullnspathIs($fnp)
              ->back('first');
         $this->prepareQuery();
     }
@@ -220,6 +337,7 @@ abstract class CouldBeType extends Analyzer {
         // function foo (array $a) { return $a;}
         $this->atomIs(self::FUNCTIONS_ALL)
              ->analyzerIsNot('self')
+             ->analyzerIsNot('Functions/IsGenerator')
              ->optional(
                 $this->side()
                      ->is('abstract', true)
@@ -230,6 +348,7 @@ abstract class CouldBeType extends Analyzer {
              ->back('first')
 
              ->outIs('RETURNED')
+             ->hasIn('RETURN')
              ->atomIs('Variable', self::WITH_CONSTANTS)
              ->inIs('DEFINITION')
              ->inIsIE('NAME')
@@ -272,7 +391,9 @@ abstract class CouldBeType extends Analyzer {
                      ->inIs('OVERWRITE')
              )
              ->analyzerIsNot('self')
+             ->analyzerIsNot('Functions/IsGenerator')
              ->outIs('RETURNED')
+             ->hasIn('RETURN')
              ->atomIs('Variable', self::WITH_CONSTANTS)
              ->inIs('DEFINITION')
              ->inIs('NAME')
@@ -292,6 +413,7 @@ abstract class CouldBeType extends Analyzer {
                      ->inIs('OVERWRITE')
              )
              ->analyzerIsNot('self')
+             ->analyzerIsNot('Functions/IsGenerator')
              ->outIs('RETURNED')
              ->atomIs(self::CALLS, self::WITH_VARIABLES)
              ->inIs('DEFINITION')
@@ -311,6 +433,7 @@ abstract class CouldBeType extends Analyzer {
         }
 
         $this->atomIs(self::FUNCTIONS_ALL)
+             ->analyzerIsNot('Functions/IsGenerator')
              ->outIs('RETURNED')
              ->atomIs('Functioncall', self::WITH_VARIABLES)
              ->fullnspathIs($ini)
@@ -323,11 +446,28 @@ abstract class CouldBeType extends Analyzer {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     // class x { protected $p = array(); }
     // class x { private $p; function foo() {$this->p = array();  } }
-    protected function checkPropertyDefault(array $atoms = array()): void {
+    protected function checkPropertyDefault(array $atoms = array(), array $noToken = array()): void {
         $this->atomIs('Propertydefinition')
              ->analyzerIsNot('self')
              ->outIs('DEFAULT')
-             ->atomIs($atoms, self::WITH_CONSTANTS)
+             ->atomIs($atoms, self::WITH_CONSTANTS);
+
+        if (!empty($noToken)) {
+            $this->tokenIsNot($noToken);
+        }
+
+        $this->back('first');
+        $this->prepareQuery();
+    }
+
+    // class x { protected $p = array(); }
+    // class x { private $p; function foo() {$this->p = array();  } }
+    protected function checkPropertyUsage(array $atoms = array()): void {
+        $this->atomIs('Propertydefinition')
+             ->analyzerIsNot('self')
+             ->outIs('DEFINITION')
+             ->inIs()
+             ->atomIs($atoms)
              ->back('first');
         $this->prepareQuery();
     }

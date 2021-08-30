@@ -24,11 +24,6 @@ namespace Exakat\Analyzer\Php;
 use Exakat\Analyzer\Analyzer;
 
 class InternalParameterType extends Analyzer {
-    public function dependsOn(): array {
-        return array('Functions/IsExtFunction',
-                    );
-    }
-
     public function analyze(): void {
         $args = $this->methods->getInternalParameterType();
 
@@ -38,7 +33,7 @@ class InternalParameterType extends Analyzer {
                                 'numeric'  => array('Float', 'Integer'),
                                 'resource' => '',
                                 'bool'     => 'Boolean',
-                                'array'    => '',
+                                'array'    => 'Arrayliteral',
                                 'void'     => 'Void',
                                 'mixed'    => '' //explicitely here to avoid it
                                 );
@@ -54,7 +49,7 @@ class InternalParameterType extends Analyzer {
                 }
 
                 $this->atomFunctionIs($functions)
-                     ->analyzerIs('Functions/IsExtFunction')
+                     ->raw('or( __.has("isPhp", true), __.has("isExt", true) )')
                      ->outWithRank('ARGUMENT', $position)
 
                      // only include literals (and closures and literal array)

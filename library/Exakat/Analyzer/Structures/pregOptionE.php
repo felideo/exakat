@@ -26,7 +26,7 @@ namespace Exakat\Analyzer\Structures;
 use Exakat\Analyzer\Analyzer;
 
 class pregOptionE extends Analyzer {
-    const FETCH_DELIMITER = <<<'GREMLIN'
+    public const FETCH_DELIMITER = <<<'GREMLIN'
 filter{ 
     base = it.get().value("noDelimiter").replaceAll("\\s", "");
     
@@ -43,7 +43,7 @@ filter{
 }
 GREMLIN;
 
-    const MAKE_DELIMITER_FINAL = <<<'GREMLIN'
+    public const MAKE_DELIMITER_FINAL = <<<'GREMLIN'
 sideEffect{ 
          if (delimiter == "{") { delimiter = "\\{";   delimiterFinal = "\\}"; } 
     else if (delimiter == "}") { delimiter = "\\}";   delimiterFinal = "\\}"; } 

@@ -27,30 +27,29 @@ use Exakat\Analyzer\Analyzer;
 
 class UndefinedProperty extends Analyzer {
     public function dependsOn(): array {
-        return array('Classes/DefinedProperty',
-                     'Classes/HasMagicProperty',
-                     'Modules/DefinedProperty',
+        return array('Complete/CreateMagicProperty',
                     );
     }
 
     public function analyze(): void {
         // only for calls internal to the class. External calls still needs some work
-        $this->atomIs('Member')
-             ->outIs('MEMBER')
-             ->tokenIs('T_STRING')
-             ->inIs('MEMBER')
-             ->analyzerIsNot('Classes/DefinedProperty')
-             ->outIs('OBJECT')
-             ->atomIs('This')
-             ->goToClass()
-             ->analyzerIsNot('Classes/HasMagicProperty')
-             ->back('first');
-        $this->prepareQuery();
-
         // static properties without a definition
-        $this->atomIs('Staticproperty')
-             ->analyzerIsNot('Modules/DefinedProperty')
-             ->hasNoIn('DEFINITION');
+        $this->atomIs(array('Member', 'Staticproperty'))
+             ->not(
+                $this->side()
+                     ->inIs('DEFINITION')
+                     ->atomIs('Magicmethod')
+             )
+             ->inIs('DEFINITION')
+             ->atomIs('Virtualproperty')
+             ->not(
+                $this->side()
+                     ->outIs('OVERWRITE')
+                     ->atomIs('Propertydefinition')
+                     ->inIs('PPP')
+                     ->isNot('visibility','private')
+             )
+             ->back('first');
         $this->prepareQuery();
     }
 }

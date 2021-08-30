@@ -31,7 +31,7 @@ function byPHP() {
 }
 
 function byPHP2() {
-    $a = strtolower($a);
+    $a = strtolower($b);
     return $a;
 }
 

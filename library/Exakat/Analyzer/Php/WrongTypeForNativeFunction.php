@@ -24,6 +24,7 @@ namespace Exakat\Analyzer\Php;
 
 use Exakat\Analyzer\Analyzer;
 use Exakat\Data\Methods;
+use Exakat\Query\DSL\FollowParAs;
 
 class WrongTypeForNativeFunction extends Analyzer {
     public function analyze(): void {
@@ -32,6 +33,13 @@ class WrongTypeForNativeFunction extends Analyzer {
                        'string' => self::STRINGS_LITERALS,
                        'array'  => array('Arrayliteral'),
                        'bool'   => array('Boolean', 'Bitoperation', 'Logical', 'Comparison'),
+                      );
+
+        $castTypes = array('float'  => array('T_DOUBLE_CAST', 'T_INT_CAST'),
+                           'int'    => 'T_INT_CAST',
+                           'string' => 'T_STRING_CAST',
+                           'array'  => 'T_ARRAY_CAST',
+                           'bool'   => 'T_BOOL_CAST',
                       );
 
         $returntypes = array();
@@ -48,12 +56,15 @@ class WrongTypeForNativeFunction extends Analyzer {
             }
 
             foreach($ini as $rank => $functions) {
+                if (empty($functions)) { continue; }
+
                 // class x { string $id; function foo() { array_map($this->id, '') ; }
                 $this->atomFunctionIs($functions)
                      ->analyzerIsNot('self')
                      ->outWithRank('ARGUMENT', (int) $rank)
                      ->atomIs(array('Member', 'Staticproperty'))
                      ->inIs('DEFINITION')
+                     ->atomIs('Propertydefinition')
                      ->inIs('PPP')
                      ->collectTypehints('typehints')
                      ->not(
@@ -86,10 +97,17 @@ class WrongTypeForNativeFunction extends Analyzer {
                 // raw expressions
                 $this->atomFunctionIs($functions)
                      ->analyzerIsNot('self')
-                     ->outWithRank('ARGUMENT', (int) $rank)
+                     ->outWithRank('ARGUMENT', $rank)
+                     ->followParAs(FollowParAs::FOLLOW_NONE)
+                     ->as('results')
                      ->atomIsNot($atoms, self::WITH_CONSTANTS)
-                     ->atomIsNot(array_merge(self::CALLS, self::CONTAINERS))
-                     ->atomIsNot(array('Identifier', 'Nsname')) // Exclude undefined constants
+                     ->not(
+                        $this->side()
+                             ->atomIs('Cast')
+                             ->tokenIs($castTypes[$type])
+                     )
+                     ->back('results')
+                     ->atomIsNot(array_merge(self::CALLS, self::CONTAINERS, array('Void', 'Identifier', 'Nsname', 'Staticconstant', 'Coalesce', 'Ternary')))
                      ->back('first');
                 $this->prepareQuery();
 
@@ -98,6 +116,8 @@ class WrongTypeForNativeFunction extends Analyzer {
                 $this->atomFunctionIs($functions)
                      ->analyzerIsNot('self')
                      ->outWithRank('ARGUMENT', (int) $rank)
+                     ->as('results')
+                     ->followParAs(FollowParAs::FOLLOW_NONE)
                      ->atomIs('Functioncall', self::WITH_VARIABLES)
                      ->is('isPhp', true)
                      ->fullnspathIsNot($returntypes[$type])
@@ -119,6 +139,8 @@ class WrongTypeForNativeFunction extends Analyzer {
                              ->inIs('LEFT')
                              ->atomIs('Coalesce')
                      )
+                     ->back('results')
+                     ->atomIsNot(array_merge(self::CONTAINERS, array('Void', 'Identifier', 'Nsname')))
                      ->back('first');
                 $this->prepareQuery();
 

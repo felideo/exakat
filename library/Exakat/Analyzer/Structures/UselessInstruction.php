@@ -122,6 +122,7 @@ class UselessInstruction extends Analyzer {
                 $this->side()
                      ->atomIs('Variable')
                      ->inIs('DEFINITION')
+                     ->outIs('DEFINITION')
                      ->atomIs(array('Staticdefinition', 'Globaldefinition'))
               )
              ->not(
@@ -144,6 +145,7 @@ class UselessInstruction extends Analyzer {
              ->not(
                 $this->side()
                      ->inIs('DEFINITION')
+                     ->outIs('DEFINITION')
                      ->atomIs(array('Staticdefinition', 'Globaldefinition'))
               )
              ->not(
@@ -172,6 +174,7 @@ class UselessInstruction extends Analyzer {
                 $this->side()
                      ->atomIs('Variable')
                      ->inIs('DEFINITION')
+                     ->outIs('DEFINITION')
                      ->atomIs(array('Staticdefinition', 'Globaldefinition'))
               )
              ->back('first');

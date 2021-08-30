@@ -1,12 +1,12 @@
 <?php
 
-$expected     = array('$b', 
-                      '$b', 
-                      '$a', 
-                      '$a', 
-                      '$b', 
-                      '$a', 
-                      '$a', 
+$expected     = array('$b',
+                      '$b',
+                      '$a',
+                      '$a',
+                      '$b',
+                      '$a',
+                      '$a',
                       '$a',
                      );
 

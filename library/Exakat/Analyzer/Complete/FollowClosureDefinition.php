@@ -37,7 +37,7 @@ class FollowClosureDefinition extends Complete {
              ->inIs('NAME')
              ->atomIs('Functioncall')
              ->hasNoIn('DEFINITION')
-             ->addETo('DEFINITION', 'first');
+             ->addEFrom('DEFINITION', 'first');
         $this->prepareQuery();
 
         // local usage
@@ -53,28 +53,16 @@ class FollowClosureDefinition extends Complete {
         $this->prepareQuery();
 
         // relayed usage foo(function(){}); function foo($a) { $a();}
-        $this->atomIs(array('Closure', 'Arrowfunction'), self::WITH_VARIABLES)
-             ->hasIn('ARGUMENT')
-             ->goToParameterDefinition()
-             ->outIs('NAME')
-             ->outIs('DEFINITION')
-             ->inIs('NAME')
-             ->atomIs('Functioncall', self::WITHOUT_CONSTANTS)
-             ->hasNoIn('DEFINITION')
-             ->addEFrom('DEFINITION', 'first');
-        $this->prepareQuery();
-
         // relayed usage $d = function(){}; foo($d); function foo($a) { $a();}
-        $this->atomIs(array('Closure', 'Arrowfunction'), self::WITH_VARIABLES)
-             ->inIs('DEFAULT')
-             ->outIs('DEFINITION')
-             ->goToParameterDefinition()
+        $this->atomIs('Functioncall')
              ->outIs('NAME')
-             ->outIs('DEFINITION')
+             ->atomIs('Variable')
+             ->inIs('DEFINITION')
              ->inIs('NAME')
-             ->atomIs('Functioncall', self::WITHOUT_CONSTANTS)
-             ->hasNoIn('DEFINITION')
-             ->addEFrom('DEFINITION', 'first');
+             ->atomIs('Parameter')
+             ->goToParameterUsage()
+             ->atomIs(array('Closure', 'Arrowfunction'), self::WITH_VARIABLES)
+             ->addETo('DEFINITION', 'first');
         $this->prepareQuery();
     }
 }

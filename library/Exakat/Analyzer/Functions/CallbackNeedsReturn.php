@@ -55,7 +55,7 @@ class CallbackNeedsReturn extends Analyzer {
                 list(, $rank) = explode('_', $position);
             }
 
-            //String callback
+            //Any callback style : string, array, closure...
             $this->atomFunctionIs($functions)
                  ->outWithRank('ARGUMENT', $rank)
                  ->atomIs(array('Closure', 'String', 'Arrayliteral', 'Arrowfunction', 'Concatenation'), self::WITH_CONSTANTS)
@@ -90,7 +90,7 @@ class CallbackNeedsReturn extends Analyzer {
                  ->back('first');
             $this->prepareQuery();
 
-            //the callback declares void as return types
+            //the callback declares void as return type
             $this->atomFunctionIs($functions)
                  ->outWithRank('ARGUMENT', $rank)
                  // Could be : string, array, closure, arrow-function,
@@ -100,8 +100,7 @@ class CallbackNeedsReturn extends Analyzer {
                  ->back('first');
             $this->prepareQuery();
 
-
-            //the callback declares void as return types
+            //the callback declares void as return type
             $this->atomFunctionIs($functions)
                  ->outWithRank('ARGUMENT', $rank)
                  ->atomIs('String', self::WITH_CONSTANTS)

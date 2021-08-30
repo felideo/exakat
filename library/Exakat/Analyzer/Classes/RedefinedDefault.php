@@ -34,6 +34,7 @@ class RedefinedDefault extends Analyzer {
                 $this->side()
                      ->outIs('DEFAULT')
                      ->hasNoIn('RIGHT')
+                     ->atomIsNot('Void')
              )
              ->as('results')
              ->goToClass()

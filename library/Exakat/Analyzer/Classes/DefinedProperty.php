@@ -34,14 +34,14 @@ class DefinedProperty extends Analyzer {
     public function analyze(): void {
         // locally defined
         // defined in local class (private included)
-        $this->atomIs('Member')
+        $this->atomIs(array('Member', 'Staticproperty'))
              ->inIs('DEFINITION')
              ->atomIs('Propertydefinition')
              ->back('first');
         $this->prepareQuery();
 
         // defined in parent class
-        $this->atomIs('Member')
+        $this->atomIs(array('Member', 'Staticproperty'))
              ->analyzerIsNot('self')
              ->inIs('DEFINITION')
              ->atomIs('Virtualproperty')
