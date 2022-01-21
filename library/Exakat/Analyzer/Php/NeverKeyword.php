@@ -20,30 +20,14 @@
  *
 */
 
+namespace Exakat\Analyzer\Php;
 
-namespace Exakat\Reports;
+use Exakat\Analyzer\Common\KeywordUsage;
 
-class Favorites extends Reports {
-    public const FILE_EXTENSION = 'json';
-    public const FILE_FILENAME  = 'favorites';
+class NeverKeyword extends KeywordUsage {
+    protected $phpVersion = '8.1-';
 
-    public function _generate(array $analyzerList): string {
-        $analyzers = $this->rulesets->getRulesetsAnalyzers(array('Preferences'));
-
-        $return = array();
-        foreach($analyzers as $analyzer) {
-            $r = $this->dump->fetchHashAnalyzer($analyzer)->toArray();
-
-            if (empty($r)) {
-                continue;
-            }
-
-            $return[$analyzer] = $r;
-            $this->count();
-        }
-
-        return json_encode($return, JSON_PRETTY_PRINT);
-    }
+    protected $keyword = 'never';
 }
 
 ?>

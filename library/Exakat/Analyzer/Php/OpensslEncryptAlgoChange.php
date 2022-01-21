@@ -21,28 +21,25 @@
 */
 
 
-namespace Exakat\Reports;
+namespace Exakat\Analyzer\Php;
 
-class Favorites extends Reports {
-    public const FILE_EXTENSION = 'json';
-    public const FILE_FILENAME  = 'favorites';
+use Exakat\Analyzer\Analyzer;
 
-    public function _generate(array $analyzerList): string {
-        $analyzers = $this->rulesets->getRulesetsAnalyzers(array('Preferences'));
+class OpensslEncryptAlgoChange extends Analyzer {
+    public function analyze(): void {
+        // Case with no 5nd argument (using default)
+        $this->atomFunctionIs('\\openssl_pkcs7_encrypt')
+             ->noChildWithRank('ARGUMENT', 5)
+             ->noArgumentWithName(array('$cipher_algo'))
+             ->back('first');
+        $this->prepareQuery();
 
-        $return = array();
-        foreach($analyzers as $analyzer) {
-            $r = $this->dump->fetchHashAnalyzer($analyzer)->toArray();
-
-            if (empty($r)) {
-                continue;
-            }
-
-            $return[$analyzer] = $r;
-            $this->count();
-        }
-
-        return json_encode($return, JSON_PRETTY_PRINT);
+        // Case with no 6nd argument (using default)
+        $this->atomFunctionIs('\\openssl_cms_encrypt')
+             ->noChildWithRank('ARGUMENT', 6)
+             ->noArgumentWithName(array('$cipher_algo'))
+             ->back('first');
+        $this->prepareQuery();
     }
 }
 

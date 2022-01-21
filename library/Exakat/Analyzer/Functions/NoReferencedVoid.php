@@ -20,29 +20,23 @@
  *
 */
 
+namespace Exakat\Analyzer\Functions;
 
-namespace Exakat\Reports;
+use Exakat\Analyzer\Analyzer;
 
-class Favorites extends Reports {
-    public const FILE_EXTENSION = 'json';
-    public const FILE_FILENAME  = 'favorites';
+class NoReferencedVoid extends Analyzer {
+    protected $phpVersion = '9.0-';
 
-    public function _generate(array $analyzerList): string {
-        $analyzers = $this->rulesets->getRulesetsAnalyzers(array('Preferences'));
-
-        $return = array();
-        foreach($analyzers as $analyzer) {
-            $r = $this->dump->fetchHashAnalyzer($analyzer)->toArray();
-
-            if (empty($r)) {
-                continue;
-            }
-
-            $return[$analyzer] = $r;
-            $this->count();
-        }
-
-        return json_encode($return, JSON_PRETTY_PRINT);
+    public function analyze(): void {
+        //function &test(): void {}
+        $this->atomIs(self::FUNCTIONS_ALL)
+             ->outIs('RETURNTYPE')
+             ->atomIs('Scalartypehint')
+             ->fullnspathIs('\\void')
+             ->back('first')
+             ->is('reference', true)
+             ->back('first');
+        $this->prepareQuery();
     }
 }
 

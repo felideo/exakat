@@ -21,28 +21,19 @@
 */
 
 
-namespace Exakat\Reports;
+namespace Exakat\Analyzer\Php;
 
-class Favorites extends Reports {
-    public const FILE_EXTENSION = 'json';
-    public const FILE_FILENAME  = 'favorites';
+use Exakat\Analyzer\Common\UsedDirective;
 
-    public function _generate(array $analyzerList): string {
-        $analyzers = $this->rulesets->getRulesetsAnalyzers(array('Preferences'));
+class Php81RemovedDirective extends UsedDirective {
+    public function analyze(): void {
+        $this->directives = array('mysqlnd.fetch_data_copy',
+                                  'filter.default',
+                                  'filter.default_options',
+                                  'auto_detect_line_endings',
+                                 );
 
-        $return = array();
-        foreach($analyzers as $analyzer) {
-            $r = $this->dump->fetchHashAnalyzer($analyzer)->toArray();
-
-            if (empty($r)) {
-                continue;
-            }
-
-            $return[$analyzer] = $r;
-            $this->count();
-        }
-
-        return json_encode($return, JSON_PRETTY_PRINT);
+        parent::analyze();
     }
 }
 

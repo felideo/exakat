@@ -20,29 +20,22 @@
  *
 */
 
+namespace Exakat\Analyzer\Php;
 
-namespace Exakat\Reports;
+use Exakat\Analyzer\Common\ConstantUsage;
 
-class Favorites extends Reports {
-    public const FILE_EXTENSION = 'json';
-    public const FILE_FILENAME  = 'favorites';
+class Php81RemovedConstant extends ConstantUsage {
+    protected $phpVersion = '8.1-';
 
-    public function _generate(array $analyzerList): string {
-        $analyzers = $this->rulesets->getRulesetsAnalyzers(array('Preferences'));
+    public function analyze(): void {
+        $this->constants = array('\MYSQLI_STMT_ATTR_UPDATE_MAX_LENGTH',
+                                 '\MYSQLI_STORE_RESULT_COPY_DATA',
+                                 '\FILE_BINARY',
+                                 '\FILE_TEXT',
+                                 '\FILTER_SANITIZE_STRING',
+                                 );
 
-        $return = array();
-        foreach($analyzers as $analyzer) {
-            $r = $this->dump->fetchHashAnalyzer($analyzer)->toArray();
-
-            if (empty($r)) {
-                continue;
-            }
-
-            $return[$analyzer] = $r;
-            $this->count();
-        }
-
-        return json_encode($return, JSON_PRETTY_PRINT);
+        parent::analyze();
     }
 }
 

@@ -24,8 +24,8 @@ namespace Exakat\Reports;
 
 
 class Perfile extends Reports {
-    const FILE_EXTENSION = 'txt';
-    const FILE_FILENAME  = self::STDOUT;
+    public const FILE_EXTENSION = 'txt';
+    public const FILE_FILENAME  = self::STDOUT;
 
     public function _generate(array $analyzerList): string {
         $analysisResults = $this->dump->fetchAnalysers($analyzerList);
@@ -36,6 +36,7 @@ class Perfile extends Reports {
         $maxTitle      = 0;
         foreach($analysisResults->toArray() as $row) {
             if ($row['line'] === -1) { continue; }
+            $this->count();
             if (!isset($titleCache[$row['analyzer']])) {
                 $titleCache[$row['analyzer']] = $this->docs->getDocs($row['analyzer'], 'name');
             }
@@ -53,9 +54,13 @@ class Perfile extends Reports {
         $text = '';
         $line = strlen((string) $maxLine) + $maxTitle + 10;
 
-        foreach($perfile as &$list) {
-            sort($list);
+        foreach($perfile as &$file) {
+            sort($file);
         }
+        unset($file);
+
+        // sort by path
+        ksort($perfile);
 
         foreach($perfile as $file => $issues) {
             $text .= str_repeat('-', $line) . "\n" .
