@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 /*
- * Copyright 2012-2019 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * Copyright 2012-2022 Damien Seguy – Exakat SAS <contact(at)exakat.io>
  * This file is part of Exakat.
  *
  * Exakat is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@ namespace Exakat\Analyzer\Complete;
 
 class SolveTraitMethods extends Complete {
     public function analyze(): void {
+        // use a,b {a::m as c};
         $this->atomIs('Usetrait', self::WITHOUT_CONSTANTS)
               ->outIs('BLOCK')
               ->outIs('EXPRESSION')
@@ -43,6 +44,7 @@ class SolveTraitMethods extends Complete {
               ->addETo('DEFINITION', 'results');
         $this->prepareQuery();
 
+        // use a\d\e,b {a\d\e::m as c};
         $this->atomIs('Usetrait', self::WITHOUT_CONSTANTS)
               ->outIs('BLOCK')
               ->outIs('EXPRESSION')
@@ -53,6 +55,25 @@ class SolveTraitMethods extends Complete {
               ->savePropertyAs('lccode', 'methode')
               ->back('first')
               ->outIs('USE')
+              ->inIs('DEFINITION')
+              ->outIs(array('METHOD', 'MAGICMETHOD'))
+              ->outIs('NAME')
+              ->samePropertyAs('lccode', 'methode', self::CASE_INSENSITIVE)
+              ->inIs('NAME')
+              ->addETo('DEFINITION', 'results');
+        $this->prepareQuery();
+
+        // use a,b {a::m insteadof c};
+        $this->atomIs('Usetrait', self::WITHOUT_CONSTANTS)
+              ->outIs('BLOCK')
+              ->outIs('EXPRESSION')
+              ->atomIs('Insteadof', self::WITHOUT_CONSTANTS)
+              ->outIs('NAME')
+              ->as('results')
+              ->outIs('NAME')
+              ->savePropertyAs('lccode', 'methode')
+              ->back('results')
+              ->outIs('CLASS')
               ->inIs('DEFINITION')
               ->outIs(array('METHOD', 'MAGICMETHOD'))
               ->outIs('NAME')

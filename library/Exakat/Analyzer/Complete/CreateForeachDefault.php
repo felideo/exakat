@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 /*
- * Copyright 2012-2019 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * Copyright 2012-2022 Damien Seguy – Exakat SAS <contact(at)exakat.io>
  * This file is part of Exakat.
  *
  * Exakat is free software: you can redistribute it and/or modify
@@ -29,6 +29,24 @@ class CreateForeachDefault extends Complete {
     }
 
     public function analyze(): void {
+        // const A = [1 => 2]; foreach(A as $v) {}
+        $this->atomIs('Foreach')
+             ->outIs('VALUE')
+             ->atomIs('Variable')
+             ->inIs('DEFINITION')
+             ->as('v')
+             ->back('first')
+
+             ->outIs('SOURCE')
+             ->atomIsNot('Variable')
+             ->atomIs('Arrayliteral', self::WITH_CONSTANTS)
+             ->outIs('ARGUMENT')
+             ->outIsIE('VALUE')
+             ->as('string')
+             ->dedup(array('v', 'string'))
+             ->addEFrom('DEFAULT', 'v');
+        $this->prepareQuery();
+
         // $a = [1 => 2]; foreach($a as $v) {}
         $this->atomIs('Foreach')
              ->outIs('VALUE')
@@ -58,16 +76,36 @@ class CreateForeachDefault extends Complete {
              ->back('first')
 
              ->outIs('SOURCE')
-             ->atomIs('Variable')
-             ->inIs('DEFINITION')
-             ->outIs('DEFAULT')
-             ->atomIs('Arrayliteral')
+             ->atomIsNot('Variable')
+             ->atomIs('Arrayliteral', self::WITH_CONSTANTS)
              ->outIs('ARGUMENT')
              ->outIs('INDEX')
              ->as('string')
              ->dedup(array('v', 'string'))
              ->addEFrom('DEFAULT', 'v');
         $this->prepareQuery();
+
+        // $a = [1 => 2]; foreach($a as $k => $v) {}
+        $this->atomIs('Foreach')
+             ->outIs('INDEX')
+             ->atomIs('Variable')
+             ->inIs('DEFINITION')
+             ->as('v')
+             ->back('first')
+
+             ->outIs('SOURCE')
+             ->atomIs('Variable')
+             ->inIs('DEFINITION')
+             ->outIs('DEFAULT')
+             ->outIs('ARGUMENT')
+             ->outIs('INDEX')
+             ->as('string')
+             ->dedup(array('v', 'string'))
+             ->addEFrom('DEFAULT', 'v');
+        $this->prepareQuery();
+
+        // @todo : with list $a = [1 => [2, 3]]; foreach($a as $k => [$v1, $v2]) {}
+        // @todo : this is getting messup when multiple loops have the same blind variables
     }
 }
 
