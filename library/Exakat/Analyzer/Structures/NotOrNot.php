@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 /*
- * Copyright 2012-2019 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * Copyright 2012-2022 Damien Seguy – Exakat SAS <contact(at)exakat.io>
  * This file is part of Exakat.
  *
  * Exakat is free software: you can redistribute it and/or modify
@@ -26,17 +26,14 @@ namespace Exakat\Analyzer\Structures;
 use Exakat\Analyzer\Analyzer;
 
 class NotOrNot extends Analyzer {
-
     public function analyze(): void {
-        $mapping = <<<'GREMLIN'
-x2 = it.get().value("token");
-GREMLIN;
+        $mapping = 'values("token")';
         $storage = array('bang'  => 'T_BANG',
                          'tilde' => 'T_TILDE');
 
         $this->atomIs('Not')
-             ->raw('map{ ' . $mapping . ' }')
-             ->raw('groupCount("gf").cap("gf").sideEffect{ s = it.get().values().sum(); }');
+             ->raw($mapping)
+             ->raw('groupCount("gf").cap("gf")');
         $types = $this->rawQuery()->toArray();
 
         if (empty($types)) {
@@ -47,7 +44,7 @@ GREMLIN;
 
         $store = array();
         $total = 0;
-        foreach($storage as $key => $v) {
+        foreach ($storage as $key => $v) {
             $c = empty($types[$v]) ? 0 : $types[$v];
             $store[] = array('key'   => $key,
                              'value' => $c);
@@ -58,15 +55,17 @@ GREMLIN;
             return;
         }
 
-        $types = array_filter($types, function ($x) use ($total) { return $x > 0 && $x / $total < 0.1; });
+        $types = array_filter($types, function (int $x) use ($total): bool {
+            return $x > 0 && $x / $total < 0.1;
+        });
         if (empty($types)) {
             return;
         }
-        $types = array_keys($types);
+        $types = array_keys($types)[0];
 
         $this->atomIs('Not')
-             ->raw('sideEffect{ ' . $mapping . ' }')
-             ->raw('filter{ x2 in ***}', $types)
+             ->raw($mapping)
+             ->isEqual($types)
              ->back('first');
         $this->prepareQuery();
     }

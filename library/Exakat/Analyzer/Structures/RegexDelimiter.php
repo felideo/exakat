@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 /*
- * Copyright 2012-2019 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * Copyright 2012-2022 Damien Seguy – Exakat SAS <contact(at)exakat.io>
  * This file is part of Exakat.
  *
  * Exakat is free software: you can redistribute it and/or modify
@@ -54,7 +54,7 @@ class RegexDelimiter extends Analyzer {
 
         $store = array();
         $total = 0;
-        foreach($storage as $key => $v) {
+        foreach ($storage as $key => $v) {
             $c = empty($types[$v]) ? 0 : $types[$v];
             $store[] = array('key'   => $key,
                              'value' => $c);
@@ -66,7 +66,9 @@ class RegexDelimiter extends Analyzer {
             return;
         }
 
-        $types = array_filter($types, function ($x) use ($total) { return $x > 0 && $x / $total < 0.1; });
+        $types = array_filter($types, function (int $x) use ($total): bool {
+            return $x > 0 && $x / $total < 0.1;
+        });
         $types =  array_keys($types);
         if (empty($types)) {
             return;

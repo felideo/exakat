@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 /*
- * Copyright 2012-2019 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * Copyright 2012-2022 Damien Seguy – Exakat SAS <contact(at)exakat.io>
  * This file is part of Exakat.
  *
  * Exakat is free software: you can redistribute it and/or modify
@@ -26,7 +26,6 @@ namespace Exakat\Analyzer\Structures;
 use Exakat\Analyzer\Analyzer;
 
 class GtOrLtFavorite extends Analyzer {
-
     public function analyze(): void {
         $codeInt = $this->dictCode->translate(array('>', '>='));
         if (empty($codeInt)) {
@@ -48,11 +47,11 @@ GREMLIN;
              ->codeIs(array('>=', '>', '<', '<='))
              ->raw('map{ ' . $mapping . ' }', $codeInt)
              ->raw('groupCount("gf").cap("gf").sideEffect{ s = it.get().values().sum(); }');
-        $types = $this->rawQuery()->toArray()[0];
+        $types = $this->rawQuery()->toArray()[0] ?? array();
 
         $store = array();
         $total = 0;
-        foreach($storage as $key => $v) {
+        foreach ($storage as $key => $v) {
             $c = empty($types[$v]) ? 0 : $types[$v];
             $store[] = array('key'   => $key,
                              'value' => $c);
@@ -63,15 +62,13 @@ GREMLIN;
             return;
         }
 
-        $types = array_filter($types, function ($x) use ($total) { return $x > 0 && $x / $total < 0.1; });
+        $types = array_filter($types, function (int $x) use ($total): bool {
+            return $x > 0 && $x / $total < 0.1;
+        });
         if (empty($types)) {
             return;
         }
         $types = array_keys($types);
-
-        if (empty($types)) {
-            return;
-        }
 
         $this->atomIs('Comparison')
              ->codeIs(array('>=', '>', '<', '<='))

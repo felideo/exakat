@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 /*
- * Copyright 2012-2019 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * Copyright 2012-2022 Damien Seguy – Exakat SAS <contact(at)exakat.io>
  * This file is part of Exakat.
  *
  * Exakat is free software: you can redistribute it and/or modify
@@ -32,19 +32,12 @@ class DifferencePreference extends Analyzer {
             $different = array(-1); // always false
         }
 
-        $mapping = <<<GREMLIN
-if (it.get().value("code") == $different[0]) {
-    x2 = "!=";
-} else {
-    x2 = "<>";
-}
-GREMLIN;
         $storage = array('!='  => '!=',
                          '<>'  => '<>');
 
         $this->atomIs('Comparison')
              ->codeIs(array('!=', '<>'))
-             ->raw('map{ ' . $mapping . ' }')
+             ->raw('map(choose(__.has("code", within(***)), constant("!="), constant("<>")))', $different)
              ->raw('groupCount("gf").cap("gf").sideEffect{ s = it.get().values().sum(); }');
         $types = $this->rawQuery()->toArray();
 
@@ -56,7 +49,7 @@ GREMLIN;
 
         $store = array();
         $total = 0;
-        foreach($storage as $key => $v) {
+        foreach ($storage as $key => $v) {
             $c = empty($types[$v]) ? 0 : $types[$v];
             $store[] = array('key'   => $key,
                              'value' => $c);
@@ -64,19 +57,21 @@ GREMLIN;
         }
 
         $this->datastore->addRowAnalyzer($this->analyzerQuoted, $store);
-        if ($total == 0) {
+        if ($total === 0) {
             return;
         }
 
-        $types = array_filter($types, function ($x) use ($total) { return $x > 0 && $x / $total < 0.1; });
+        $types = array_filter($types, function (int $x) use ($total): bool {
+            return $x > 0 && $x / $total < 0.1;
+        });
         if (empty($types)) {
             return;
         }
 
         $this->atomIs('Comparison')
              ->codeIs(array('!=', '<>'))
-             ->raw('map{ ' . $mapping . ' }')
-             ->raw('filter{ x2 in ***}', $types)
+             ->raw('map(choose(__.has("code", within(***)), constant("!="), constant("<>")))', $different)
+             ->raw('where(is(within(***)))', array_keys($types))
              ->back('first');
         $this->prepareQuery();
     }

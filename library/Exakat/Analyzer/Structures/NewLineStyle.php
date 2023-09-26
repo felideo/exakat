@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 /*
- * Copyright 2012-2019 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * Copyright 2012-2022 Damien Seguy – Exakat SAS <contact(at)exakat.io>
  * This file is part of Exakat.
  *
  * Exakat is free software: you can redistribute it and/or modify
@@ -26,25 +26,17 @@ namespace Exakat\Analyzer\Structures;
 use Exakat\Analyzer\Analyzer;
 
 class NewLineStyle extends Analyzer {
-
     public function analyze(): void {
-        $mapping = <<<'GREMLIN'
-if (it.get().label() == "String") {
-    x2 = "slash-n"
-} else {
-    x2 = "PHP_EOL"
-}
-
-GREMLIN;
+        $mapping = 'choose(__.hasLabel("String"), constant("slash-n"), constant("PHP_EOL"))';
         $storage = array('\\n'     => 'slash-n',
                          'PHP_EOL' => 'PHP_EOL');
 
         $this->atomIs(array('String', 'Identifier', 'Nsname'))
              ->raw('coalesce( __.hasLabel("Identifier", "Nsname").has("fullnspath").has("fullnspath", "\\\\PHP_EOL"), 
-                              __.hasLabel("String").has("noDelimiter", "\\\\n")
+                              __.hasLabel("String").not(where(__.in("CONCAT").hasLabel("String", "Heredoc"))).has("noDelimiter", "\\\\n")
                              )')
-             ->raw('map{ ' . $mapping . ' }')
-             ->raw('groupCount("gf").cap("gf").sideEffect{ s = it.get().values().sum(); }');
+             ->raw($mapping)
+             ->raw('groupCount("gf").cap("gf")');
         $types = $this->rawQuery()->toArray();
 
         if (empty($types)) {
@@ -54,7 +46,7 @@ GREMLIN;
 
         $store = array();
         $total = 0;
-        foreach($storage as $key => $v) {
+        foreach ($storage as $key => $v) {
             $c = empty($types[$v]) ? 0 : $types[$v];
             $store[] = array('key'   => $key,
                              'value' => $c);
@@ -66,17 +58,19 @@ GREMLIN;
             return;
         }
 
-        $types = array_filter($types, function ($x) use ($total) { return $x > 0 && $x  < 0.1 *  $total; });
+        $types = array_filter($types, function (int $x) use ($total): bool {
+            return $x > 0 && $x  < 0.1 *  $total;
+        });
         if (empty($types)) {
             return;
         }
 
         $this->atomIs(array('String', 'Identifier', 'Nsname'))
              ->raw('coalesce( __.hasLabel("Identifier", "Nsname").has("fullnspath").has("fullnspath", "\\\\PHP_EOL"), 
-                              __.hasLabel("String").has("noDelimiter", "\\\\n")
+                              __.hasLabel("String").not(where(__.in("CONCAT").hasLabel("String", "Heredoc"))).has("noDelimiter", "\\\\n")
                              )')
-             ->raw('sideEffect{ ' . $mapping . ' }')
-             ->raw('filter{ x2 in ***}', $types)
+             ->raw($mapping)
+             ->isEqual(array_keys($types)[0])
              ->back('first');
         $this->prepareQuery();
     }

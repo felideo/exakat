@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 /*
- * Copyright 2012-2019 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * Copyright 2012-2022 Damien Seguy – Exakat SAS <contact(at)exakat.io>
  * This file is part of Exakat.
  *
  * Exakat is free software: you can redistribute it and/or modify
@@ -26,7 +26,6 @@ namespace Exakat\Analyzer\Structures;
 use Exakat\Analyzer\Analyzer;
 
 class ComparisonFavorite extends Analyzer {
-
     public function analyze(): void {
         $codeInt = array_values($this->dictCode->translate(array('!==', '===')));
         if (empty($codeInt)) {
@@ -40,6 +39,8 @@ if (it.get().value("code").toLong() in ***) {
     x2 = 'relaxed';
 }
 GREMLIN;
+        $mapping = 'choose( __.has("code", within(***)), constant("strict"), constant("relaxed"))';
+
         $storage = array('strict'  => 'strict',
                          'relaxed' => 'relaxed',
                          );
@@ -47,13 +48,13 @@ GREMLIN;
         $comparators = array('==', '===', '!==', '!=');
         $this->atomIs('Comparison')
              ->codeIs($comparators)
-             ->raw('map{ ' . $mapping . ' }', $codeInt)
-             ->raw('groupCount("gf").cap("gf").sideEffect{ s = it.get().values().sum(); }');
-        $types = $this->rawQuery()->toArray()[0];
+             ->raw($mapping, $codeInt)
+             ->raw('groupCount("gf").cap("gf")');
+        $types = $this->rawQuery()->toArray()[0] ?? array();
 
         $store = array();
         $total = 0;
-        foreach($storage as $key => $v) {
+        foreach ($storage as $key => $v) {
             $c = empty($types[$v]) ? 0 : $types[$v];
             $store[] = array('key'   => $key,
                              'value' => $c);
@@ -65,16 +66,18 @@ GREMLIN;
             return;
         }
 
-        $types = array_filter($types, function ($x) use ($total) { return $x > 0 && $x / $total < 0.1; });
+        $types = array_filter($types, function (int $x) use ($total): bool {
+            return $x > 0 && $x / $total < 0.1;
+        });
         if (empty($types)) {
             return;
         }
-        $types = array_keys($types);
+        $types = array_keys($types)[0];
 
         $this->atomIs('Comparison')
              ->codeIs($comparators)
-             ->raw('map{ ' . $mapping . ' }', $codeInt)
-             ->raw('filter{ x2 in ***}', $types)
+             ->raw($mapping, $codeInt)
+             ->isEqual($types)
              ->back('first');
         $this->prepareQuery();
     }

@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 /*
- * Copyright 2012-2019 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * Copyright 2012-2022 Damien Seguy – Exakat SAS <contact(at)exakat.io>
  * This file is part of Exakat.
  *
  * Exakat is free software: you can redistribute it and/or modify
@@ -26,7 +26,6 @@ namespace Exakat\Analyzer\Constants;
 use Exakat\Analyzer\Analyzer;
 
 class InconsistantCase extends Analyzer {
-
     public function analyze(): void {
         $lower = $this->dictCode->translate(array('true', 'false', 'null'));
         $upper = $this->dictCode->translate(array('TRUE', 'FALSE', 'NULL'));
@@ -62,7 +61,7 @@ GREMLIN;
 
         $store = array();
         $total = 0;
-        foreach($storage as $key => $v) {
+        foreach ($storage as $key => $v) {
             $c = empty($types[$v]) ? 0 : $types[$v];
             $store[] = array('key'   => $key,
                              'value' => $c);
@@ -74,7 +73,9 @@ GREMLIN;
             return;
         }
 
-        $types = array_filter($types, function ($x) use ($total) { return $x > 0 && $x / $total < 0.1; });
+        $types = array_filter($types, function (int $x) use ($total): bool {
+            return $x > 0 && $x / $total < 0.1;
+        });
         $types = '[' . str_replace('\\', '\\\\', makeList(array_keys($types))) . ']';
 
         $this->atomIs(array('Null', 'Boolean'))
