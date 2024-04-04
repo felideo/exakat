@@ -1,3 +1,0 @@
-<?php
-switch($a) : 
-endswitch;

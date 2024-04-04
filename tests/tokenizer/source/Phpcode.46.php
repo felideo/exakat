@@ -1,6 +1,0 @@
-<?php
-/*
- * Doc
- */
-
-// Comments

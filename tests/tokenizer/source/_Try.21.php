@@ -1,6 +1,0 @@
-<?php
-try {
-
-} finally {
-
-}

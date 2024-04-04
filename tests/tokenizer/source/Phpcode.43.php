@@ -1,9 +1,0 @@
-<?php
-
-function B($b, $c) {
-
-?>
-Q<?=$g; ?>R<?=E('T'); ?>E<?php
-
-} 
-

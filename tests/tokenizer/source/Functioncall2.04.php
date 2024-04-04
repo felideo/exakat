@@ -1,1 +1,0 @@
-<?php if ($a) echo 3 + 3 ?><?php if ($a) echo (3 * 5); ?>

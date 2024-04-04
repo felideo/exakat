@@ -1,1 +1,0 @@
-<?php if ($a) echo 3 ?>
