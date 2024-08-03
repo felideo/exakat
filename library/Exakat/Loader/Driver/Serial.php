@@ -101,10 +101,10 @@ class Serial extends Driver {
         $timer = new Timer();
 
         foreach ($links as &$link) {
-            $link = (array) $link;
+            $link = array_values((array) $link);
         }
         unset($link);
-
+		
         $query = <<<'GREMLIN'
 links.each { link ->
     g.V(link[1]).addE(link[0]).to( __.V(link[2])).iterate();

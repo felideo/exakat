@@ -199,7 +199,7 @@ class Exakat {
 |________|[__]`\_]\'-;__/[__|  \_]\'-;__/\__/  
                                                
 
-Exakat : @ 2014-2023 Damien Seguy - Exakat SAS <contact(at)exakat.io>. 
+Exakat : @ 2014-2024 Damien Seguy - Exakat SAS <contact(at)exakat.io>. 
 Version : ", $version, ' - Build ', $build, ' - ', $date, "\n";
 
 				break;

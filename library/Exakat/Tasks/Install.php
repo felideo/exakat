@@ -23,11 +23,19 @@
 namespace Exakat\Tasks;
 
 class Install extends Tasks {
+
     public const CONCURENCE = self::NONE;
 
     public const TINKERGRAPH_VERSION = '3.7.1';
 
     public function run(): void {
+		$arrContextOptions=array(
+		    "ssl"=>array(
+		        "verify_peer"=>false,
+		        "verify_peer_name"=>false,
+		    ),
+		);
+
         $error = array();
 
         $res = shell_exec('java -version 2>&1') ?? '';
@@ -54,8 +62,8 @@ class Install extends Tasks {
             print "Tinkergraph is already installed. Omitting\n";
         } else {
             print "Starting download of tinkergraph.\n";
-            $tinkerpop = file_get_contents('https://www.exakat.io/versions/index.php?file=apache-tinkerpop-gremlin-server-' . self::TINKERGRAPH_VERSION . '-bin.zip') ?: '';
-            $tinkerpopsha256 = file_get_contents('https://www.exakat.io/versions/index.php?file=apache-tinkerpop-gremlin-server-' . self::TINKERGRAPH_VERSION . '-bin.zip.sha256') ?: '';
+            $tinkerpop = file_get_contents('https://www.exakat.io/versions/index.php?file=apache-tinkerpop-gremlin-server-' . self::TINKERGRAPH_VERSION . '-bin.zip', false, stream_context_create($arrContextOptions)) ?: '';
+            $tinkerpopsha256 = file_get_contents('https://www.exakat.io/versions/index.php?file=apache-tinkerpop-gremlin-server-' . self::TINKERGRAPH_VERSION . '-bin.zip.sha256', false, stream_context_create($arrContextOptions)) ?: '';
 
             if (hash('sha256', $tinkerpop) === substr($tinkerpopsha256, 0, 64) ) {
                 print "Gremlin server checksum OK\n";
@@ -80,7 +88,7 @@ class Install extends Tasks {
 
         shell_exec(PHP_BINARY . ' ' . $this->config->executable . ' doctor');
 
-        $ini = file_get_contents($this->config->projects_root . '/config/exakat.ini');
+        $ini = file_get_contents($this->config->projects_root . '/config/exakat.ini', false, stream_context_create($arrContextOptions));
         if (preg_match('/graphdb\s*=\s*\'nogremlin\';/', $ini)) {
             // check for nogremlin configuration
             if (file_exists($this->config->projects_root . '/tinkergraph/ext/neo4j-gremlin')) {
