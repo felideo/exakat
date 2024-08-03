@@ -161,6 +161,8 @@ abstract class Reports {
 
         $available = $this->dump->fetchTable('themas')->toList('thema');
 
+        debug1($available, '$available');
+
         if (empty($available)) {
             // Nothing found.
             return $required;

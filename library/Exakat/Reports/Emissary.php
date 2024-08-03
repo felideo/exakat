@@ -255,6 +255,7 @@ class Emissary extends Reports {
                 print "Warning : no such method as $method; Skipping\n";
                 continue;
             }
+
             $this->$method($generation);
         }
 
@@ -957,7 +958,7 @@ HTML;
         <div class="box-header with-border">
             <h3 class="box-title">Project Overview</h3>
         </div>
-    
+
         <div class="box-body chart-responsive">
             <div class="row">
                 <div class="sub-div">
@@ -1289,7 +1290,7 @@ HTML;
         foreach ($data as $value) {
             $html []= '<div class="clearfix">
                     <a href="' . $file . '.html#analyzer=' . $this->toId($value['name']) . '" title="' . $value['label'] . '">
-                      <div class="block-cell-name">' . $value['label'] . '</div> 
+                      <div class="block-cell-name">' . $value['label'] . '</div>
                     </a>
                     <div class="block-cell-issue text-center">' . $value['value'] . '</div>
                   </div>';
@@ -1378,7 +1379,7 @@ HTML;
         $total = count($issues);
         $issues = implode(', ' . PHP_EOL, $issues);
         $blocjs = <<<JAVASCRIPTCODE
-        
+
   <script>
   "use strict";
 
@@ -1388,11 +1389,11 @@ HTML;
 $issues
 ];
 
-      var item_template =  
+      var item_template =
         '<tr>' +
           '<td width="20%"><a href="<%= "analyses_doc.html#" + obj.analyzer_md5 %>" title="Documentation for <%= obj.analyzer %>"><i class="fa fa-book"></i></a> <%= obj.analyzer %></td>' +
           '<td width="20%"><%= obj.file + ":" + obj.line %></td>' +
-          '<td width="18%"><%= obj.code %></td>' + 
+          '<td width="18%"><%= obj.code %></td>' +
           '<td width="2%"><%= obj.code_detail %></td>' +
           '<td width="7%" align="center"><%= obj.severity %></td>' +
           '<td width="7%" align="center"><%= obj.complexity %></td>' +
@@ -1401,9 +1402,9 @@ $issues
         '<tr class="fullcode">' +
           '<td colspan="7" width="100%"><div class="analyzer_help"><%= obj.analyzer_help %></div><pre><code><%= obj.code_plus %></code><div class="text-right"></div></pre></td>' +
         '</tr>';
-      var settings = { 
+      var settings = {
         items           : data_items,
-        facets          : { 
+        facets          : {
           'analyzer'  : 'Analysis',
           'file'      : 'File',
           'severity'  : 'Severity',
@@ -1414,14 +1415,14 @@ $issues
         facetTitleTemplate : '<button class="facettitle multiselect dropdown-toggle btn btn-default" data-toggle="dropdown" title="None selected"><span class="multiselect-selected-text"><%= title %></span><b class="caret"></b></button>',
         facetListContainer : '<ul class="facetlist multiselect-container dropdown-menu" style="max-height: 450px; overflow: auto;"></ul>',
         listItemTemplate   : '<li class=facetitem id="<%= id %>" data-analyzer="<%= data_analyzer %>" data-file="<%= data_file %>"><span class="check"></span><%= name %><span class=facetitemcount>(<%= count %>)</span></li>',
-        bottomContainer    : '<div class=bottomline></div>',  
+        bottomContainer    : '<div class=bottomline></div>',
         resultSelector   : '#results',
         facetSelector    : '#facets',
         resultTemplate   : item_template,
         paginationCount  : 50
-      }   
+      }
       $.facetelize(settings);
-      
+
       var analyzerParam = window.location.hash.split('analyzer=')[1];
       console.log(analyzerParam);
       var fileParam = window.location.hash.split('file=')[1];
@@ -2087,7 +2088,7 @@ HTML;
         $compatibility = implode(PHP_EOL, $compatibility) . PHP_EOL . implode(PHP_EOL, $skipped);
 
         $description = <<<'HTML'
-<i class="fa fa-check-square-o"></i> : Nothing found for this analysis, proceed with caution; <i class="fa fa-warning red"></i> : some issues found, check this; <i class="fa fa-ban"></i> : Can't test this, PHP version incompatible; <i class="fa fa-cogs"></i> : Can't test this, PHP configuration incompatible; 
+<i class="fa fa-check-square-o"></i> : Nothing found for this analysis, proceed with caution; <i class="fa fa-warning red"></i> : some issues found, check this; <i class="fa fa-ban"></i> : Can't test this, PHP version incompatible; <i class="fa fa-cogs"></i> : Can't test this, PHP configuration incompatible;
 HTML;
 
         $html = $this->getBasedPage($section->source);
@@ -2666,7 +2667,7 @@ HTML;
         if (empty($tree)) {
             return '';
         }
-        
+
         if ($level > 10) {
         	print "Too deep : $parent\n";
             return '';
@@ -2788,9 +2789,9 @@ HTML;
         $html = $this->injectBloc($html, 'DESCRIPTION', <<<'HTML'
 Below, is a list of classes that may be updated with final or abstract. <br />
 
-The red stars <i class="fa fa-star" style="color:red"></i> mention possible upgrade by using final or abstract keywords; 
-The green stars <i class="fa fa-star" style="color:green"></i> mention a valid absence of the option (an extended class, that can't be final, ...); 
-The absence of star report currently configured classes.  
+The red stars <i class="fa fa-star" style="color:red"></i> mention possible upgrade by using final or abstract keywords;
+The green stars <i class="fa fa-star" style="color:green"></i> mention a valid absence of the option (an extended class, that can't be final, ...);
+The absence of star report currently configured classes.
 
 HTML
         );
@@ -3571,7 +3572,7 @@ HTML;
   if(line !== undefined) {
         window.location.hash = 'l' + line;
   }
-  
+
   </script>
 JAVASCRIPT;
         $html = $this->getBasedPage($section->source);

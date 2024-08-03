@@ -195,6 +195,8 @@ class Project extends Tasks {
             $rulesetsToRun = $this->rulesetsToRun;
         }
 
+    	array_values($rulesetsToRun);
+
         display("Running project '" . (string) $this->config->project . "'" . PHP_EOL);
         display('Running the following rulesets : ' . implode(', ', $rulesetsToRun));
         display('Producing the following reports : ' . implode(', ', $namesToRun));

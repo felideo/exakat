@@ -1,1 +1,7 @@
 projects/*
+tinkergraph/gremlin.log
+tinkergraph/db/neo4j/logs/debug.log
+tinkergraph/db/neo4j/metrics/*.csv
+tinkergraph/logs/gremlin.log
+tinkergraph/run/gremlin.pid
+test.html

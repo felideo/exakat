@@ -47,6 +47,8 @@ class Diplomat extends Emissary {
         return array('CompatibilityPHP80', 'CompatibilityPHP81', 'CompatibilityPHP82',
                      'Appinfo',
                      'Analyze',
+                     'All',
+
                      );
     }
 }

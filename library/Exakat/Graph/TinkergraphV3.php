@@ -224,12 +224,12 @@ class TinkergraphV3 extends Graph {
         return <<<'SQL'
 SELECT DISTINCT CASE WHEN definitions.id IS NULL THEN definitions2.id ELSE definitions.id END AS definition, GROUP_CONCAT(DISTINCT calls.id) AS call, count(calls.id) AS id
 FROM calls
-LEFT JOIN definitions 
+LEFT JOIN definitions
     ON definitions.type       = calls.type       AND
        definitions.fullnspath = calls.fullnspath
 LEFT JOIN definitions definitions2
     ON definitions2.type       = calls.type       AND
-       definitions2.fullnspath = calls.globalpath 
+       definitions2.fullnspath = calls.globalpath
 WHERE (definitions.id IS NOT NULL OR definitions2.id IS NOT NULL)
 GROUP BY definition
 SQL;

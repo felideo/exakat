@@ -1,0 +1,119 @@
+<?php declare(strict_types = 1);
+/*
+ * Copyright 2012-2024 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * This file is part of Exakat.
+ *
+ * Exakat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Exakat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Exakat.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * The latest code can be found at <http://exakat.io/>.
+ *
+*/
+
+namespace Exakat\Analyzer\Functions;
+
+use Exakat\Analyzer\Analyzer;
+
+class CallbackNeedsReturn extends Analyzer {
+    public function dependsOn(): array {
+        return array('Variables/IsLocalConstant',
+                     'Complete/SetArrayClassDefinition',
+                     'Complete/PropagateConstants',
+                    );
+    }
+
+    public function analyze(): void {
+        $ini = $this->loadIni('php_with_callback.ini');
+
+        // Excluding some functions that don't REQUIRE return
+        $ini->functions0 = array_diff($ini->functions0,
+            array('\forward_static_call_array',
+                  '\forward_static_call',
+                  '\register_shutdown_function',
+                  '\register_tick_function',
+                  '\spl_autoload_register',
+                  )
+        );
+
+        $returningFunctions = $this->readStubs('getFunctionsByReturnType', array('\\void'));
+        $voidReturningFunctions = array_map(function (string $x): string {
+            return trim($x, '\\');
+        }, $returningFunctions);
+
+        foreach ($ini as $position => $functions) {
+            $rank = substr($position, 9);
+            if ($rank[0] === '_') {
+                list(, $rank) = explode('_', $position, 2);
+            }
+
+            //Any callback style : string, array, closure...
+            $this->atomFunctionIs($functions)
+                 ->analyzerIsNot('self')
+                 ->outWithRank('ARGUMENT', $rank)
+                 ->atomIs(array('Closure', 'String', 'Arrayliteral', 'Arrowfunction', 'Concatenation'), self::WITH_CONSTANTS)
+                 ->optional(
+                     $this->side()
+                          ->inIs('DEFINITION')
+                 )
+                 ->not(
+                     $this->side()
+                          ->outIs('TYPEHINT')
+                          ->fullnspathIs('\\void')
+                 )
+                ->not(
+                    $this->side()
+                         ->filter(
+                             $this->side()
+                                  ->outIs(array('ARGUMENT', 'USE'))
+                                  ->is('reference', true)
+                         )
+                )
+                 ->not(
+                     $this->side()
+                          ->filter(
+                              $this->side()
+                                   ->outIs('ARGUMENT')
+                                   ->is('reference', true)
+                          )
+                 )
+                 ->atomIs(self::FUNCTIONS_ALL)
+                 ->hasNoOut('RETURNED')
+                 ->back('first');
+            $this->prepareQuery();
+
+            //the callback declares void as return type
+            $this->atomFunctionIs($functions)
+                 ->analyzerIsNot('self')
+                 ->outWithRank('ARGUMENT', $rank)
+                 // Could be : string, array, closure, arrow-function,
+                 ->inIs('DEFINITION')
+                 ->outIs('TYPEHINT')
+                 ->fullnspathIs('\\void')
+                 ->back('first');
+            $this->prepareQuery();
+
+            //the callback declares void as return type
+            $this->atomFunctionIs($functions)
+                 ->outWithRank('ARGUMENT', $rank)
+                 ->atomIs('String', self::WITH_CONSTANTS)
+                 ->analyzerIsNot('self')
+                 ->noDelimiterIs($voidReturningFunctions, self::CASE_INSENSITIVE);
+            $this->prepareQuery();
+
+            //Normal class callback
+            // Still needs DEFINITION link
+        }
+    }
+}
+
+?>

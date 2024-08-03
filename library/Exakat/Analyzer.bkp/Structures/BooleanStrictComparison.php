@@ -1,0 +1,58 @@
+<?php declare(strict_types = 1);
+/*
+ * Copyright 2012-2024 Damien Seguy – Exakat SAS <contact(at)exakat.io>
+ * This file is part of Exakat.
+ *
+ * Exakat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Exakat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Exakat.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * The latest code can be found at <http://exakat.io/>.
+ *
+*/
+
+
+namespace Exakat\Analyzer\Structures;
+
+use Exakat\Analyzer\Analyzer;
+
+class BooleanStrictComparison extends Analyzer {
+    public function analyze(): void {
+        // while (list($a, $b) = each($c)) {}
+        $this->atomIs('Comparison')
+             ->codeIsNot(array('===', '!=='))
+             ->outIs(array('RIGHT', 'LEFT'))
+             ->atomIs('Boolean')
+             ->back('first');
+        $this->prepareQuery();
+
+        // in_array ($array, $value);
+        // array_keys ($array, $value);
+        // array_search ($array, $value);
+        $this->atomFunctionIs(array('\\in_array', '\\array_search', '\\array_keys'))
+             ->hasChildWithRank('ARGUMENT', 1)
+             ->noChildWithRank('ARGUMENT', 2);
+        $this->prepareQuery();
+
+        // in_array ($array, $value, false);
+        // array_keys ($array, $value, false);
+        // array_search ($array, $value, false);
+        $this->atomFunctionIs(array('\\in_array', '\\array_search', '\\array_keys'))
+             ->outWithRank('ARGUMENT', 2)
+             ->atomIs(array('Boolean', 'String', 'Integer'), self::WITH_CONSTANTS)
+             ->is('boolean', false)
+             ->back('first');
+        $this->prepareQuery();
+    }
+}
+
+?>
